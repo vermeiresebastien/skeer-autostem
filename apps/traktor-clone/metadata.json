@@ -1,0 +1,8 @@
+{
+  "name": "Traktor Pro Web DJ",
+  "description": "Professional web copy of Native Instruments Traktor Pro with dual 2D/3D WebXR console, 4-deck Web Audio DSP, beatgrid analysis, downloadable analysis backup, Google Drive, and Google Tasks.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
