@@ -1,0 +1,16 @@
+{
+  "name": "autostem-flash-china",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port=3001 --host=0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server.ts",
+    "clean": "rm -rf dist"
+  },
+  "description": "Skeer autoSTEM Flash China - Traktor Pro clone with real backend integration",
+  "author": "Skeer",
+  "license": "MIT"
+}
