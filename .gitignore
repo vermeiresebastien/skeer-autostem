@@ -1,0 +1,14 @@
+## .NET build output
+bin/
+obj/
+
+## Published artifacts
+artifacts/
+
+## Local scratch
+*.user
+*.suo
+.vs/
+
+## Not part of the product: Ableton's own stock template is read from the Live install at
+## runtime, never copied into the repository.

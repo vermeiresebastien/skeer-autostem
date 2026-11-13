@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>SkeerAutoSTEM</AssemblyName>
+    <RootNamespace>StemForge.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Brand\skeer.ico</ApplicationIcon>
+    <Version>1.1.0</Version>
+    <Product>Skeer autoSTEM</Product>
+    <Description>Skeer autoSTEM - batch stem separation for Ableton Live 12</Description>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- WFO0003: the DPI settings live in app.manifest on purpose; this is a WPF app. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StemForge.Core\StemForge.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SKEER brand assets, embedded so the app is still a single file. -->
+    <Resource Include="Brand\skeer-mark.png" />
+    <Resource Include="Brand\skeer-wordmark.png" />
+  </ItemGroup>
+
+</Project>
