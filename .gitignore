@@ -13,12 +13,3 @@ artifacts/
 ## Not part of the product: Ableton's own stock template is read from the Live install at
 ## runtime, never copied into the repository.
 
-## Firebase applet configuration. These hold the live apiKey, appId, authDomain,
-## firestoreDatabaseId, storageBucket and oAuthClientId that src/services/googleWorkspace.ts
-## imports statically, so the real file must stay on disk for the app to build - but it must
-## never be tracked. Copy the sibling .example.json, fill in your own project values, and
-## leave the filled-in copy untracked.
-## NOTE: the values are still present in this repository's HISTORY (commits 8c5410c and
-## c0990ff). History rewriting was explicitly ruled out for this cleanup, so the durable fix
-## is to rotate the key in the Google Cloud / Firebase console and tighten firestore.rules.
-apps/*/firebase-applet-config.json
