@@ -24,10 +24,13 @@ public sealed class SeparationRequest
 
     public IProgress<SeparationProgress>? Progress { get; init; }
 
-    /// <summary>Live writes generated audio here: &lt;project&gt;\Samples\Processed\Stems.</summary>
-    public string LiveStemsFolder => Path.Combine(WorkingFolder, "Samples", "Processed", "Stems");
+    /// <summary>The Live project folder for this job, named after the set inside it.</summary>
+    public string ProjectFolder => Projects.WorkingProjectBuilder.ProjectFolder(WorkingFolder);
 
-    public string ProjectFilePath => Path.Combine(WorkingFolder, Projects.WorkingProjectBuilder.WorkingProjectFileName);
+    /// <summary>Where Live writes generated audio: &lt;project&gt;\Samples\Processed\Stems.</summary>
+    public string LiveStemsFolder => Path.Combine(ProjectFolder, "Samples", "Processed", "Stems");
+
+    public string ProjectFilePath => Path.Combine(ProjectFolder, Projects.WorkingProjectBuilder.WorkingProjectFileName);
 }
 
 public sealed record SeparationOutcome(
@@ -43,17 +46,6 @@ public sealed record SeparationOutcome(
 
     public static SeparationOutcome Failure(ErrorKind kind, string error, double seconds = 0) =>
         new(false, kind, error, new Dictionary<Stems, string>(), seconds, false);
-}
-
-/// <summary>
-/// Drives stem separation for one track. Implemented by the real Live automation
-/// runner and by a simulated runner used for tests and for machines without Live.
-/// </summary>
-public interface ILiveRunner
-{
-    string Name { get; }
-
-    Task<SeparationOutcome> SeparateAsync(SeparationRequest request, CancellationToken cancellationToken);
 }
 
 /// <summary>

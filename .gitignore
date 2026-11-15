@@ -5,6 +5,9 @@ obj/
 ## Published artifacts
 artifacts/
 
+## Unified launch folder - refreshed by build.ps1, always derived, never committed
+launch/
+
 ## Local scratch
 *.user
 *.suo

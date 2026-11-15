@@ -1,4 +1,5 @@
 using StemForge.Core.Audio;
+using StemForge.Core.Engines;
 using StemForge.Core.Logging;
 using StemForge.Core.Models;
 
@@ -13,7 +14,7 @@ namespace StemForge.Core.Live;
 /// Results produced here are explicitly *simulated* and are never presented as Ableton
 /// verification.
 /// </summary>
-public sealed class SimulatedLiveRunner : ILiveRunner
+public sealed class SimulatedLiveRunner : ISeparator
 {
     public enum FaultMode
     {
@@ -42,6 +43,13 @@ public sealed class SimulatedLiveRunner : ILiveRunner
     private readonly Func<SeparationRequest, Options> _optionsFactory;
 
     public string Name => "Simulated engine";
+
+    /// <summary>
+    /// Live, on purpose: what this double reproduces is Live's contract, including the failures
+    /// only Live can raise. Classifying it as anything else would let those failures be rewritten
+    /// on the way into the queue and defeat the tests that exist to check them.
+    /// </summary>
+    public EngineKind Kind => EngineKind.Live;
 
     public SimulatedLiveRunner(RunLog log, Func<SeparationRequest, Options>? optionsFactory = null)
     {
@@ -81,7 +89,13 @@ public sealed class SimulatedLiveRunner : ILiveRunner
 
         request.Progress?.Report(new SeparationProgress(JobStage.Separating, "simulated"));
 
-        var sources = AudioFileReader.ReadSamples(request.Source.Path, out var sourceInfo);
+        var sourceInfo = request.SourceInfo;
+
+        // An MP3 is measured, never decoded, so a simulated MP3 run shapes its stems from
+        // silence of the right length instead of samples this tool cannot obtain.
+        var sources = AudioFileReader.HasDecodableSamples(request.Source.Path)
+            ? AudioFileReader.ReadSamples(request.Source.Path, out _)
+            : new float[sourceInfo.SampleFrames * sourceInfo.Channels];
 
         // Simulated processing time, deliberately separate from any copying.
         var simulatedSeconds = Math.Min(3.0, sourceInfo.DurationSeconds * 0.02) * options.SpeedFactor;

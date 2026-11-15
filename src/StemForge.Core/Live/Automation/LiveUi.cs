@@ -53,6 +53,11 @@ public static class LiveUi
         catch { return string.Empty; }
     }
 
+    /// <summary>
+    /// Live's own answer to "can this be pressed right now". False also covers an element that
+    /// could not be read, so a caller that distinguishes "refused" from "gone" checks
+    /// <see cref="IsStale"/> first.
+    /// </summary>
     public static bool IsEnabled(AutomationElement element)
     {
         try { return element.Current.IsEnabled; }
@@ -108,6 +113,24 @@ public static class LiveUi
         catch
         {
             return Array.Empty<AutomationElement>();
+        }
+    }
+
+    /// <summary>
+    /// Finds an element by its automation id. Ids are the stable half of Ableton's tree: names
+    /// are localised and reworded between versions, but "StatusText" is the bottom-left status
+    /// line in every language, which makes it the right thing to read a busy signal from.
+    /// </summary>
+    public static AutomationElement? FindByAutomationId(AutomationElement root, string id)
+    {
+        try
+        {
+            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, id);
+            return root.FindFirst(TreeScope.Descendants, condition);
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -311,25 +334,15 @@ public static class LiveUi
         return null;
     }
 
-    /// <summary>Selects an element using whichever pattern it supports, then clicking.</summary>
-    public static bool TrySelect(AutomationElement element)
+    /// <summary>
+    /// Presses an element the way a person does - a real mouse click on its own screen rectangle
+    /// - instead of through a pattern. Live's accessibility tree mirrors the interface faithfully
+    /// but answers pattern calls inconsistently: a clip slot exposes no selection pattern, a menu
+    /// item accepts Invoke and does nothing. Anything that reported success and changed nothing
+    /// is escalated to this.
+    /// </summary>
+    public static bool TryClick(AutomationElement element)
     {
-        try
-        {
-            if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern) &&
-                pattern is SelectionItemPattern selection)
-            {
-                selection.Select();
-                return true;
-            }
-        }
-        catch
-        {
-            // fall through
-        }
-
-        if (TryInvoke(element)) return true;
-
         var point = ClickablePoint(element);
         if (point is null) return false;
 
@@ -400,6 +413,73 @@ public static class LiveUi
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Writes a value into an edit control. ValuePattern is the direct route; when a control
+    /// refuses it, the field is focused, cleared and typed into instead, which works on any
+    /// standard Windows file dialog.
+    /// </summary>
+    public static bool TrySetValue(AutomationElement element, string value)
+    {
+        try
+        {
+            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) &&
+                pattern is ValuePattern editable &&
+                !editable.Current.IsReadOnly)
+            {
+                editable.SetValue(value);
+                return true;
+            }
+        }
+        catch
+        {
+            // fall through to typing
+        }
+
+        try
+        {
+            element.SetFocus();
+            InputSimulator.Chord(InputSimulator.VkControl, InputSimulator.VkA);
+            InputSimulator.TypeText(value);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>The field a save dialog writes the file name into, or null when there is none.</summary>
+    public static AutomationElement? FindFileNameEdit(AutomationElement root)
+    {
+        AutomationElement? first = null;
+
+        foreach (var element in Descendants(root))
+        {
+            try
+            {
+                if (element.Current.ControlType != ControlType.Edit) continue;
+                if (IsOffscreen(element)) continue;
+                if (!element.TryGetCurrentPattern(ValuePattern.Pattern, out _)) continue;
+            }
+            catch
+            {
+                continue;
+            }
+
+            first ??= element;
+
+            // The named field beats the positional guess: dialogs carry more than one edit.
+            var haystack = (Name(element) + " " + HelpText(element) + " " + AutomationId(element)).ToLowerInvariant();
+            if (haystack.Contains("file name") || haystack.Contains("filename") ||
+                haystack.Contains("save in") || haystack.Contains("file:") || haystack.Contains("name:"))
+            {
+                return element;
+            }
+        }
+
+        return first;
     }
 
     /// <summary>Reads the current toggle state, or null when the element is not a toggle.</summary>

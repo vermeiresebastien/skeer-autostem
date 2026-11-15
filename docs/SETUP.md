@@ -132,7 +132,8 @@ Conditions the automation depends on:
 | Condition | Why |
 | --- | --- |
 | Desktop left **unlocked** | Synthetic input needs an interactive desktop; a locked desktop is detected and the batch pauses. |
-| Ableton Live left **closed** before Run | Skeer autoSTEM opens its own working set. If your own project is open it pauses rather than touching it. |
+| Live sessions that are open get saved and closed at Run | A run owns Live. Anything still open is saved first - an unsaved set lands in `…\SkeerAutoSTEM\recovered\` under a stamped name - and the app asks before closing it. Save your own work up front if you would rather pick the name. |
+| Live not busy with file analysis | Live accepts the Separate Stems command and drops it while scanning its library. The run waits for the status line to go quiet, which on a large library can take minutes. |
 | Do not use mouse/keyboard over **Live** while a track processes | Taking focus away from Live stops automated input safely, but interrupts the track. |
 | **Live launched on the monitor it starts on** | The window is maximised and coordinates are window-relative, so it survives moving/resizing, but it must stay on that display. |
 | Display scaling | Handled: the app is per-monitor DPI aware. |

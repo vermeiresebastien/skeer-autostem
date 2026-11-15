@@ -25,7 +25,20 @@ public partial class MainWindow : Window
         {
             StartupTrace.Write("MainWindow:loaded");
             Theme.WindowChrome.ApplySkeerChrome(this);
+            EnqueueStartupPaths();
         };
+    }
+
+    /// <summary>
+    /// Queues paths that arrived on the command line. QueueService ignores anything that is
+    /// not a real file or folder, so a stale association cannot fail startup.
+    /// </summary>
+    private void EnqueueStartupPaths()
+    {
+        if (Application.Current is not App app || app.StartupPaths.Count == 0) return;
+
+        _viewModel.AddDropped(app.StartupPaths);
+        StartupTrace.Write($"MainWindow:startup-paths:{app.StartupPaths.Count}");
     }
 
     /// <summary>

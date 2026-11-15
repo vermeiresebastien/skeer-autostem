@@ -29,6 +29,12 @@ public sealed class LiveUiProfile
     public int SetLoadTimeoutSeconds { get; set; } = 180;
     public int DialogTimeoutSeconds { get; set; } = 60;
 
+    /// <summary>
+    /// How long Live may be busy with its own background work - file analysis in particular,
+    /// which on a large library runs into minutes - before the run stops waiting for it.
+    /// </summary>
+    public int SettleTimeoutSeconds { get; set; } = 900;
+
     /// <summary>Seconds a generated file's size must stay unchanged before it counts as finished.</summary>
     public double FileStabilitySeconds { get; set; } = 2.0;
 

@@ -36,7 +36,17 @@ public sealed record AudioClipSpec(
 /// </summary>
 public static class WorkingProjectBuilder
 {
-    public const string WorkingProjectFileName = "autoSTEM Working Set.als";
+    /// <summary>
+    /// The set's name without its extension. Live only treats a folder as a project when the
+    /// folder is named after the set inside it, and that is what keeps the generated stems inside
+    /// our own working area instead of a temporary project under "Live Recordings".
+    /// </summary>
+    public const string WorkingProjectName = "autoSTEM Working Set";
+
+    public const string WorkingProjectFileName = WorkingProjectName + ".als";
+
+    /// <summary>The project folder Live opens: a real Live project, named after its set.</summary>
+    public static string ProjectFolder(string workingFolder) => Path.Combine(workingFolder, WorkingProjectName);
 
     private const string AudioClipTemplate = """
         <AudioClip Id="0" Time="0"><LomId Value="0" /><LomIdView Value="0" /><CurrentStart Value="0" /><CurrentEnd Value="{LEN}" /><Loop><LoopStart Value="0" /><LoopEnd Value="{LEN}" /><StartRelative Value="0" /><LoopOn Value="false" /><OutMarker Value="{LEN}" /><HiddenLoopStart Value="0" /><HiddenLoopEnd Value="{LEN}" /></Loop><Name Value="{NAME}" /><Annotation Value="" /><Color Value="12" /><LaunchMode Value="0" /><LaunchQuantisation Value="0" /><TimeSignature><TimeSignatures><RemoteableTimeSignature Id="0"><Numerator Value="4" /><Denominator Value="4" /><Time Value="0" /></RemoteableTimeSignature></TimeSignatures></TimeSignature><Envelopes><Envelopes /></Envelopes><ScrollerTimePreserver><LeftTime Value="0" /><RightTime Value="{LEN}" /></ScrollerTimePreserver><TimeSelection><AnchorTime Value="0" /><OtherTime Value="0" /></TimeSelection><Legato Value="false" /><Ram Value="false" /><GrooveSettings><GrooveId Value="-1" /></GrooveSettings><Disabled Value="false" /><VelocityAmount Value="0" /><FollowAction><FollowTime Value="4" /><IsLinked Value="true" /><LoopIterations Value="1" /><FollowActionA Value="4" /><FollowActionB Value="0" /><FollowChanceA Value="100" /><FollowChanceB Value="0" /><JumpIndexA Value="1" /><JumpIndexB Value="1" /><FollowActionEnabled Value="false" /></FollowAction><Grid><FixedNumerator Value="1" /><FixedDenominator Value="16" /><GridIntervalPixel Value="20" /><Ntoles Value="2" /><SnapToGrid Value="true" /><Fixed Value="false" /></Grid><FreezeStart Value="0" /><FreezeEnd Value="0" /><IsWarped Value="false" /><TakeId Value="1" /><SampleRef><FileRef><RelativePathType Value="0" /><RelativePath Value="" /><Path Value="{PATH}" /><Type Value="1" /><LivePackName Value="" /><LivePackId Value="" /><OriginalFileSize Value="{SIZE}" /></FileRef><LastModDate Value="{MODDATE}" /><SampleUsageHint Value="0" /><DefaultDuration Value="{FRAMES}" /><DefaultSampleRate Value="{RATE}" /></SampleRef><Onsets><UserOnsets /><HasUserOnsets Value="false" /></Onsets><WarpMode Value="0" /><GranularityTones Value="30" /><GranularityTexture Value="65" /><FluctuationTexture Value="25" /><TransientResolution Value="6" /><TransientLoopMode Value="2" /><TransientEnvelope Value="100" /><ComplexProFormants Value="100" /><ComplexProEnvelope Value="128" /><Sync Value="true" /><HiQ Value="true" /><Fade Value="false" /><Fades><FadeInLength Value="0" /><FadeOutLength Value="0" /><ClipFadesAreInitialized Value="true" /><CrossfadeInState Value="0" /><FadeInCurveSkew Value="0" /><FadeInCurveSlope Value="0" /><FadeOutCurveSkew Value="0" /><FadeOutCurveSlope Value="0" /><IsDefaultFadeIn Value="true" /><IsDefaultFadeOut Value="true" /></Fades><PitchCoarse Value="0" /><PitchFine Value="0" /><SampleVolume Value="1" /><WarpMarkers><WarpMarker Id="0" SecTime="0" BeatTime="0" /></WarpMarkers><SavedWarpMarkersForStretched /><MarkersGenerated Value="false" /><IsSongTempoLeader Value="false" /></AudioClip>
@@ -73,10 +83,18 @@ public static class WorkingProjectBuilder
         return null;
     }
 
-    /// <summary>Creates (or refreshes) the working project folder and Live Set for a job.</summary>
+    /// <summary>
+    /// Creates (or refreshes) the working Live Set for a job and returns its path.
+    ///
+    /// The set is written into a folder of the same name, which is Live's own definition of a
+    /// project. Without that, Live copies the loose set into
+    /// "Documents\Ableton\Live Recordings\<stamp> Temp Project" and generates the stems there -
+    /// measured with Live 12.3.5, where the separation succeeded and autostem could not see it.
+    /// </summary>
     public static string CreateProject(string workingFolder, string baseTemplatePath, AudioClipSpec spec)
     {
-        Directory.CreateDirectory(workingFolder);
+        var projectFolder = ProjectFolder(workingFolder);
+        Directory.CreateDirectory(projectFolder);
 
         var alsBytes = File.ReadAllBytes(baseTemplatePath);
         var xml = Decompress(alsBytes);
@@ -86,7 +104,7 @@ public static class WorkingProjectBuilder
 
         InjectClip(document, spec);
 
-        var projectPath = Path.Combine(workingFolder, WorkingProjectFileName);
+        var projectPath = Path.Combine(projectFolder, WorkingProjectFileName);
         AtomicWrite(projectPath, Compress(document.OuterXml));
 
         return projectPath;

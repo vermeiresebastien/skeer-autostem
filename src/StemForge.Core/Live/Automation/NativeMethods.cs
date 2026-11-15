@@ -107,6 +107,14 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr OpenInputDesktop(uint dwFlags, bool fInherit, uint dwDesiredAccess);
 
+    /// <summary>Reads a property of a window station or desktop object; UOI_NAME is index 2.</summary>
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetUserObjectInformationW(
+        IntPtr hObject, int nIndex, StringBuilder pvInfo, uint nLength, out uint lpnLengthNeeded);
+
+    public const int UoiName = 2;
+
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool CloseDesktop(IntPtr hDesktop);

@@ -1,4 +1,5 @@
 using StemForge.Core.Audio;
+using StemForge.Core.Engines;
 using StemForge.Core.Interop;
 using StemForge.Core.Live;
 using StemForge.Core.Logging;
@@ -55,9 +56,9 @@ public sealed class BatchContext
 /// </summary>
 public sealed class BatchRunner
 {
-    private readonly ILiveRunner _runner;
+    private readonly ISeparator _runner;
 
-    public BatchRunner(ILiveRunner runner) => _runner = runner;
+    public BatchRunner(ISeparator runner) => _runner = runner;
 
     /// <summary>
     /// When set, the run stops after the job currently being processed has been finished
@@ -257,8 +258,13 @@ public sealed class BatchRunner
                     m => log.Info(m, job));
             }
 
-            var pause = ShouldPauseBatch(outcome.Kind);
-            return Fail(job, context, outcome.Kind, outcome.Error ?? "Separation failed.", continueBatch: !pause);
+            var kind = EngineFailures.Normalize(_runner.Kind, outcome.Kind);
+            if (kind != outcome.Kind)
+                log.Warn($"engine '{_runner.Name}' reported the Live-only failure {outcome.Kind}; " +
+                         $"recorded as {kind}", job);
+
+            var pause = ShouldPauseBatch(kind);
+            return Fail(job, context, kind, outcome.Error ?? "Separation failed.", continueBatch: !pause);
         }
 
         // --- verify the source was left alone ---------------------------------
@@ -350,14 +356,16 @@ public sealed class BatchRunner
 
     /// <summary>
     /// Gives every job a clean working area so a previous run's files can never satisfy
-    /// the current one.
+    /// the current one. The whole folder goes, not just the Stems subfolder: the working
+    /// area holds a Live project whose name Live depends on, and a half-cleared project is
+    /// worse than none.
     /// </summary>
     private static void ResetWorkingFolder(string working)
     {
         try
         {
-            var stems = Path.Combine(working, "Samples", "Processed", "Stems");
-            if (Directory.Exists(stems)) Directory.Delete(stems, recursive: true);
+            if (Directory.Exists(working)) Directory.Delete(working, recursive: true);
+            Directory.CreateDirectory(working);
         }
         catch
         {

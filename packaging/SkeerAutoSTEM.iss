@@ -1,95 +1,83 @@
-; Skeer autoSTEM Installer
-; Inno Setup script for Windows 11
+; Skeer autoSTEM installer - Inno Setup 6
+;
+;   ISCC.exe packaging\SkeerAutoSTEM.iss
+;
+; Relative paths resolve against this script's own folder (packaging\), so ..\ reaches the
+; repository root. Run .\build.ps1 first: this script packages the binaries it publishes and
+; fails if they are missing.
+
+#define AppName "Skeer autoSTEM"
+; Keep in sync with <Version> in src\StemForge.App\StemForge.App.csproj.
+#define AppVersion "1.1.0"
 
 [Setup]
-; NOTE: The value of AppId uniquely identifies this application.
+; AppId is this product's permanent identity: never change it once shipped, or a new build
+; installs side by side instead of replacing the old one.
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
-AppName=Skeer autoSTEM
-AppVersion=1.1.0
+AppName={#AppName}
+AppVersion={#AppVersion}
+AppVerName={#AppName} {#AppVersion}
 AppPublisher=Skeer
-AppPublisherURL=https://github.com/sebastienvermeire/skeer-autostem
-AppSupportURL=https://github.com/sebastienvermeire/skeer-autostem/issues
-AppUpdatesURL=https://github.com/sebastienvermeire/skeer-autostem/releases
+AppPublisherURL=https://github.com/vermeiresebastien/skeer-autostem
+AppSupportURL=https://github.com/vermeiresebastien/skeer-autostem/issues
+AppUpdatesURL=https://github.com/vermeiresebastien/skeer-autostem/releases
 DefaultDirName={autopf}\Skeer autoSTEM
 DefaultGroupName=Skeer autoSTEM
 AllowNoIcons=yes
-LicenseFile=
-OutputDir=artifacts\installers
+UninstallDisplayName={#AppName}
+UninstallDisplayIcon={app}\SkeerAutoSTEM.exe
+SetupIconFile=..\src\StemForge.App\Brand\skeer.ico
+OutputDir=..\artifacts\installers
 OutputBaseFilename=Skeer_autoSTEM_Setup_v{#AppVersion}
-SetupIconFile=
 Compression=lzma2
-CompressionLevel=ultra
 SolidCompression=yes
 WizardStyle=modern
 MinVersion=10.0
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+; Per-user install: the app needs no elevation to run, and the audio associations below are
+; written to HKCU, which only behaves predictably when the install runs as the same user.
+PrivilegesRequired=lowest
+; Required whenever the [Registry] section touches file classes: without it neither the
+; install nor the uninstall tells the shell to reload its association table.
+ChangesAssociations=yes
+CloseApplications=yes
 
 [Files]
-; The main executable (self-contained .NET 10 app)
-Source: "artifacts\SkeerAutoSTEM\SkeerAutoSTEM.exe"; DestDir: "{app}"; Flags: ignoreversion
-; The CLI companion tool
-Source: "artifacts\autostem-cli\autostem.exe"; DestDir: "{app}"; Flags: ignoreversion
+; The desktop app and the headless companion: both self-contained single files, so Ableton
+; aside, nothing else needs to be installed.
+Source: "..\artifacts\SkeerAutoSTEM\SkeerAutoSTEM.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\artifacts\autostem-cli\autostem.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-; Desktop shortcut
-Name: "{commondesktop}\Skeer autoSTEM"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"
-; Start menu shortcut
-Name: "{group}\Skeer autoSTEM"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"
-Name: "{group}\Uninstall Skeer autoSTEM"; Filename: "{uninstallexe}"; IconFilename: "{app}\SkeerAutoSTEM.exe"
+Name: "{group}\{#AppName}"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"
+Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
-[Run]
-; Launch the app after installation
-Filename: "{app}\SkeerAutoSTEM.exe"; Description: "Launch Skeer autoSTEM"; Flags: nowait postinstall skipifsilent
+[Tasks]
+Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Registry]
-; Register the file association for .wav, .aif, .aiff, .mp3, .m4a, .flac, .ogg
-Root: HKCR; Subkey: ".wav"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.WAVFile"; Flags: noenvreplace
-Root: HKCR\SkeerAutoSTEM.WAVFile; ValueType: string; ValueName: ""; ValueData: "Skeer autoSTEM WAV File"; Flags: noenvreplace
-Root: HKCR\SkeerAutoSTEM.WAVFile\shell\open\command; ValueType: string; ValueName: ""; ValueData: """{app}\SkeerAutoSTEM.exe"" ""%1""""; Flags: noenvreplace
+; Opening an audio file from Explorer queues it in the app. Registered under HKCU, not HKCR,
+; so the install never replaces the machine-wide handler for every .wav on this desk, and
+; uninsdeletekey hands the format back to the previous player on uninstall.
+; The default handler is taken over for the working-file formats only, because those are the
+; files this desk is produced in. MP3 is offered in "Open with" and keeps its player.
+Root: HKCU; Subkey: "Software\Classes\SkeerAutoSTEM.Audio"; ValueType: string; ValueName: ""; ValueData: "Skeer autoSTEM batch input"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SkeerAutoSTEM.Audio\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\SkeerAutoSTEM.exe"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SkeerAutoSTEM.Audio\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\SkeerAutoSTEM.exe"",0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.wav"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.Audio"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.aif"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.Audio"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\.aiff"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.Audio"; Flags: uninsdeletekey
+; Windows protects a hashed UserChoice from installer-written defaults (on this desk .wav is
+; claimed by a packaged Media Player), so also offer the ProgID in "Open with": picking Skeer
+; autoSTEM there once and choosing Always is the only way an installer can win that type.
+Root: HKCU; Subkey: "Software\Classes\.wav\OpenWithProgids"; ValueType: string; ValueName: "SkeerAutoSTEM.Audio"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\.aif\OpenWithProgids"; ValueType: string; ValueName: "SkeerAutoSTEM.Audio"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\.aiff\OpenWithProgids"; ValueType: string; ValueName: "SkeerAutoSTEM.Audio"; ValueData: ""; Flags: uninsdeletevalue
+; Offered, not defaulted: an MP3 opened from Explorer queues it, and Live reads the file in
+; place. Other compressed formats are absent on purpose - the app still cannot read them.
+Root: HKCU; Subkey: "Software\Classes\.mp3\OpenWithProgids"; ValueType: string; ValueName: "SkeerAutoSTEM.Audio"; ValueData: ""; Flags: uninsdeletevalue
 
-; Register file association for other audio formats
-Root: HKCR; Subkey: ".aif"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.AudioFile"; Flags: noenvreplace
-Root: HKCR; Subkey: ".aiff"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.AudioFile"; Flags: noenvreplace
-Root: HKCR; Subkey: ".mp3"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.AudioFile"; Flags: noenvreplace
-Root: HKCR; Subkey: ".m4a"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.AudioFile"; Flags: noenvreplace
-Root: HKCR; Subkey: ".flac"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.AudioFile"; Flags: noenvreplace
-Root: HKCR; Subkey: ".ogg"; ValueType: string; ValueName: ""; ValueData: "SkeerAutoSTEM.AudioFile"; Flags: noenvreplace
-
-Root: HKCR\SkeerAutoSTEM.AudioFile; ValueType: string; ValueName: ""; ValueData: "Skeer autoSTEM Audio File"; Flags: noenvreplace
-Root: HKCR\SkeerAutoSTEM.AudioFile\shell\open\command; ValueType: string; ValueName: ""; ValueData: """{app}\SkeerAutoSTEM.exe"" ""%1""""; Flags: noenvreplace
-
-; Register the app in "Open with" menu
-Root: HKCR\*\shell\Skeer autoSTEM; ValueType: string; ValueName: ""; ValueData: "Open with Skeer autoSTEM"; Flags: noenvreplace
-Root: HKCR\*\shell\Skeer autoSTEM\command; ValueType: string; ValueName: ""; ValueData: """{app}\SkeerAutoSTEM.exe"" ""%1""""; Flags: noenvreplace
-
-[UninstallDelete]
-; Clean up AppData on uninstall
-Type: files; Name: "{appdata}\SkeerAutoSTEM\*"
-Type: files; Name: "{appdata}\SkeerAutoSTEM\*"
-
-[Code]
-function InitializeSetup(): Boolean;
-var
-  ResultCode: Integer;
-begin
-  Result := True;
-
-  // Check if Ableton Live is installed (optional, for informational purposes)
-  if RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Ableton Live 12 Suite', 'InstallLocation', @ResultCode) then
-  begin
-    // Ableton Live is installed, but we don't fail the installation
-    // The user can still use the simulated engine
-  end;
-end;
-
-procedure CurStepChanged(CurStep: TSetupStep);
-var
-  ResultCode: Integer;
-begin
-  if CurStep = ssPostInstall then
-  begin
-    // Open the app data folder for the user
-    ShellExec('Open', 'explorer.exe', '{appdata}\SkeerAutoSTEM', '', SW_SHOW, ewWaitUntilTerminated, erIgnoreReturn);
-  end;
-end;
+[Run]
+Filename: "{app}\SkeerAutoSTEM.exe"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent

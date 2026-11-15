@@ -1,7 +1,10 @@
 # Skeer autoSTEM — test report
 
-Date of testing: 2026-11-04
+Date of testing: 2026-11-04, re-run against real Live on 2026-11-14 (runs `run-20261114-*`).
 Machine: Windows 11-era desktop (AMD Ryzen 9 3900X, 64 GB RAM, RTX 2080 Ti), interactive desktop session.
+
+> The 2026-11-14 re-runs overturned two claims this report made about clip selection and the
+> menu path. They are corrected below, in place, with what was actually measured instead.
 
 ---
 
@@ -65,12 +68,41 @@ Verified on this machine, against the installed Live 12.3.5:
    with the window title `autostem Working Set - Ableton Live 12 Suite`, showing the
    injected audio clip in the first track's first clip slot, with **no** missing-file,
    schema or version warning dialog.
-4. **Clip selection works.** autostem selected the clip through UI Automation using Live's
-   own element (`SessionView.Track[0].Slot[0]`, named
-   `<clip name>, stopped, in track 1-Audio, scene 1`).
-5. **The menu path works.** autostem opened the `Create` menu through UI Automation
-   (`MenuBar` → `Create`) and found the `Separate Stems to New Audio Tracks` entry in the
-   menu popup, confirmed by dumping Live's live automation tree.
+4. **The clip slot is found, and selecting it does take effect — but not every time.**
+   autostem locates the slot through UI Automation (`SessionView.Track[0].Slot[0]`, named
+   `<clip name>, stopped, in track 1-Audio, scene 1`). In the 03:14:49 UTC run the slot was
+   selected and four seconds later Live's Separate Stems command was enabled and its dialog
+   opened, so selection demonstrably works. In the 04:00:37 UTC run the same line of code left
+   Live reporting the command `disabled`. Live's clip slot exposes **no** selection pattern, so
+   the old log wording — "selected through UI Automation" — was wrong even when the outcome was
+   right: the call that actually did it was the mouse click the pattern path fell through to.
+   Selection is now an explicit real click on the slot's own rectangle, and the command's
+   `IsEnabled` state — not the call's return value — decides whether it worked.
+5. **The `Create` menu, the dialog, and Live's own separation have all been driven.**
+   `MenuBar → Create` opens through UI Automation, `Separate Stems to New Audio Tracks`
+   (`id="Item 935"`) is in the popup, and when the clip is selected pressing it opens the dialog
+   — whose full tree was logged by the 03:14:49 UTC run:
+
+   ```
+   Pane name="Separate Stems"
+     CheckBox "Vocals, Include or exclude the Vocals stem."  id="VocalsCheckControl"
+     CheckBox "Drums, ..."  "Bass, ..."  "Others, ..."       id="…CheckControl"
+     Text "High Speed"
+     CheckBox "Quality Mode, Choose between High Speed or High Quality." id="HighQualityCheckControl"
+     Text "High Quality"
+     Text "This action will stop audio."
+     Button name="Separate" id="SeparateButton"    Button name="Cancel" id="CancelButton"
+   ```
+
+   There is no "Merge to Single Track" option in this build — the run says so rather than
+   assuming it. All four stem toggles and the mode were set and re-read (`stem toggle Bass = on
+   (verified)`), `Separate` was clicked, and **218 s later Live had written four real 49.7 MB
+   WAVs** (`… [2026-11-14 031511] (Vocals|Drums|Bass|Others).wav`) under
+   `Documents\Ableton\Live Recordings\2026-11-14 041458 Temp Project\Samples\Processed\Stems`.
+   The press itself is no longer trusted blindly: a greyed-out entry is Live refusing, not a
+   retry, so the command path reads `IsEnabled` first, distinguishes *chosen*, *absent* and
+   *greyed out*, re-selects the clip before asking twice, and fails as `ClipNotSelected` with a
+   sentence about what Live is refusing and why.
 6. **Safe-stop behaviour works.** When a step could not be verified, autostem stopped and
    paused the batch with a specific reason (`LiveLostFocus` while stealing the foreground
    from a background process; `LiveErrorDialog` when the menu item could not be confirmed),
@@ -80,44 +112,73 @@ Verified on this machine, against the installed Live 12.3.5:
    the correct window, both first-launch defaults (All four stems, High Speed), the
    counters, the run-log path and the detected Live build.
 
-## 4. Not yet verified end to end (needs an idle machine)
+## 4. Not yet verified end to end (needs a free desktop)
 
-The last leg — **the Separate Stems dialog contents, the completion signal, and real
-Live-generated WAVs** — was not driven to completion on this machine. The blocker was
-environmental, not architectural:
+One leg is left, and it is the last one: **the runner has never collected the files Live
+produced.** Everything before it — dialog, toggles, `Separate`, Live's own separation, four
+real WAVs on disk — was done under automation by the 03:14:49 UTC run and is logged above.
+That run then watched its own working-project folder and reported
+`separating: 350s elapsed, no stem files yet` while Live was writing two directories away, in a
+temp project. That is the §6 output bug in `docs/SEPARATION-ENGINES.md`; `StemCandidateFolders`
+fixes it in code, and completion detection, verification and publication all sit behind that
+fix, so none of them is measured yet.
 
-- the desktop was in active use by another session that was itself driving Ableton
-  (an `ableton-mcp` process was running), and
-- the desktop was heavily contended, so a background process could not reliably hold the
-  foreground long enough to complete a dialog interaction.
+What the other 2026-11-14 runs established, each from Live's own tree and status line rather
+than from an assumption:
 
-Everything up to and including reaching the `Separate Stems to New Audio Tracks` menu item
-was verified; the dialog interaction itself was not exercised.
+- **`run-09` — the recovery prompt could starve startup.** After a forced termination Live
+  reopens with a modal "Live unexpectedly quit while you were working on the Live Set …
+  Would you like to recover your work?" whose window has an **empty title** while Live loads.
+  The answer loop counted *glances* rather than *presses*, so one pass that saw no buttons yet
+  marked the window exhausted and never came back; the prompt then sat in front of the main
+  window for the whole startup timeout and the job died as `LiveWindowNotFound`. The budget now
+  counts presses, which is the thing that has to succeed. Measured on `run-10`: Live reached
+  its main window in 74 s. No prompt appeared that time, so the fix is implemented but the
+  modal itself is still unexercised.
+- **`run-10` — the same command that opened the dialog at 03:15 was greyed out at 04:00.**
+  `Live took the command but opened nothing`, three times, with the status line going
+  `Analysis: Scanning (679 found)` → `Analysis: Paused` → `Analysis: Scanning (43 found)`, and
+  the tree saying `MenuItem name="Separate Stems to New Audio Tracks" id="Item 935" disabled`.
+  Live refuses the command when no audio clip is selected, and Live's selection is not
+  something a background process can assume while a person is using the machine. Waiting for
+  Live to be idle is necessary and was not sufficient; the `IsEnabled` gate is what turns this
+  from a fake success into a named failure (`ClipNotSelected`).
+- **The machine is shared with live automation of its own.** A third-party control surface
+  (`LK_Bridge`) logs `name '_clip_signature' is not defined` roughly every 15 s (1,184 times
+  today) and can move Live's focus and selection underneath a run. That is not autostem's bug,
+  but it is a real confound for any verification run: stop it first.
+
+So the remaining gap is one uninterrupted run that finishes. Nothing about the architecture is
+in question; what is missing is the last few feet of evidence.
 
 ### Shortest procedure to close that gap
 
 Do this once, on an idle, unlocked desktop with no other Ableton automation running.
+It takes about four minutes for one short track, and the run log names the step if it stops.
 
-1. Close Ableton Live. If any Live window is open, save and close your own project (or leave
-   it — autostem will pause rather than touch it, but closing is faster).
-2. Stop anything else that drives Live (close other DAW tooling / MCP servers).
-3. Build the tool (or use `artifacts/SkeerAutoSTEM\SkeerAutoSTEM.exe`).
+1. Close Ableton Live. If any Live window is open, save your own project first - a run now
+   saves and closes whatever it finds, but the save is automatic and the name is not yours.
+2. Stop anything else that drives Live (close other DAW tooling / MCP servers, and `LK_Bridge`).
+3. Build the tool (or use `launch\SkeerAutoSTEM.exe`).
 4. Pick one short track, e.g. a 20–60 s WAV.
 5. Run, from a terminal, with Live closed:
 
    ```powershell
    cd <repo>
-   dotnet build tools/StemForge.Cli/StemForge.Cli.csproj
-   tools\StemForge.Cli\bin\Debug\net10.0-windows\autostem.exe run "C:\path\to\short.wav" `
-       --dest "D:\AutoStemOut" --stems all --mode speed
+   dotnet build StemForge.slnx -c Release
+   tools\StemForge.Cli\bin\Release\net10.0-windows\autostem.exe run "C:\path\to\short.wav" `
+       --dest "D:\AutoStemOut" --stems all --mode speed --engine live
    ```
 
    Expected output: stages through `Separating`, then
    `completed 1, skipped 0, failed 0`, and a result folder under `D:\AutoStemOut`.
+   The new failure to watch for is `ClipNotSelected` — that means Live still refuses the
+   command after a real click on the clip slot, and it is a fact about Live's selection, not a
+   timeout to retry.
 6. Confirm the result:
 
    ```powershell
-   tools\StemForge.Cli\bin\Debug\net10.0-windows\autostem.exe verify "D:\AutoStemOut\short"
+   tools\StemForge.Cli\bin\Release\net10.0-windows\autostem.exe verify "D:\AutoStemOut\short"
    ```
 
    Expected: one line per stem, each `OK`, then `verification: PASS`.
@@ -135,12 +196,17 @@ press Run, and accept the run-conditions prompt.
 
 ## 5. Automated test coverage
 
-`dotnet test tests/StemForge.Tests/StemForge.Tests.csproj` → **88 tests, 88 passed, 0 failed**
-(~4–8 s). These run without Ableton Live via the simulated engine and are kept strictly
-separate from real Ableton verification — nothing in this section is evidence about Live.
+`dotnet test tests/StemForge.Tests/StemForge.Tests.csproj` → **181 tests, 181 passed, 0 failed**
+(2026-11-15; was 88 on 2026-11-04 and 161 earlier on 2026-11-14, ~4–9 s). These run without
+Ableton Live via the simulated engine and are kept strictly separate from real Ableton
+verification — nothing in this section is evidence about Live.
 
 | Area | What is covered |
 | --- | --- |
+| Engine seam | which failure causes only a Live-driving engine may report (a non-Live engine reporting "Live lost the foreground" becomes `Unknown`, so a batch never pauses for an impossible reason); the catalogue states which engines this build can run; asking for an absent engine says so rather than silently using Live; new `ErrorKind` values are **appended**, never inserted, because queue files store them positionally |
+| Session takeover | every classification of a Live process already running (ours / the user's / an orphan), and the recovered-set name that bumps rather than replaces an existing `.als` |
+| Local engine arithmetic | the part of Demucs that is not the model, ported from `apply.py`/`api.py` and tested before any inference code exists: 10 s windows 330 750 samples apart, the window the reference centres and pads, the triangle fade, the weighted overlap-add divided by the weight that actually landed, the tail of a track that needs **two** short windows, the mono-reference mean/unbiased-std level applied and undone, and the stem order (`drums, bass, other, vocals` - with an assertion that it is *not* Ableton's dialog order, because swapping vocals and others is the mislabel that would ship silently). The central test gives the accumulator its own input back and demands the original mix, sample for sample |
+| Source formats | MP3 container header reading (duration, sample rate, channels) without a decoder, and the same tolerance rules applied to it |
 | Job identity | same work → same id; changed source → new id; Drums Only / High Quality never matches All / High Speed; different destination → different job |
 | Queue persistence | full round-trip of every field; interrupted `Running` job returns as retryable `Pending`; completed jobs are not reset; missing file → empty queue; corrupt queue preserved not discarded; flags-enum round-trip |
 | Queue service | duplicate suppression; folder import is top-level unless recursion is requested (and ignores non-audio); clear completed keeps unfinished work; retry failed; freezing settings re-keys jobs and merges duplicates while leaving finished jobs alone |
@@ -277,10 +343,11 @@ Defects found and fixed during this pass:
 | --- | --- |
 | Standalone app, packaged and launched from its own executable | **Verified** |
 | First-launch defaults (All stems, High Speed), persistence, queue UI | **Verified** |
-| Queue, resume, verification, naming, publishing, safety logic | **Verified by 88 automated tests** |
+| Queue, resume, verification, naming, publishing, safety logic | **Verified by 161 automated tests** |
 | Locating and identifying the installed Live build | **Verified against Live 12.3.5 Suite** |
 | Working project generated and opened by Live, clip intact, no warnings | **Verified against Live 12.3.5 Suite** |
-| Clip selection and the `Create > Separate Stems to New Audio Tracks` menu path via UI Automation | **Verified against Live 12.3.5 Suite** |
+| The clip slot being found, the `Create` menu, **the Separate Stems dialog and its toggles** | **Verified against Live 12.3.5 Suite** |
+| Live performing the separation and writing four WAVs, started by automation | **Verified** — 218 s, four 49.7 MB WAVs in a temp project |
 | Safe-stop on focus loss / unverifiable state | **Verified in practice** (it stopped and paused, with diagnostics) |
-| Separate Stems dialog configuration, completion signal, real Live WAVs | **Outstanding** — needs one run on an idle machine (§4) |
-| Real separation-time benchmark | **Outstanding** — one command (§6) |
+| The runner *finding* those WAVs, the completion signal, and publishing them to the destination | **Outstanding** — the §6 fix is in code and needs one finishing run (§4) |
+| Real separation-time benchmark | **Partly closed** — Live's own 218.2 s / 0.744 RTF is measured; the four-run `bench` matrix is not (§6) |

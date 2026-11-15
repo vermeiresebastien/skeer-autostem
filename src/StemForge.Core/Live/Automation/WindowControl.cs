@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 
 namespace StemForge.Core.Live.Automation;
 
@@ -9,14 +10,55 @@ namespace StemForge.Core.Live.Automation;
 /// </summary>
 public static class WindowControl
 {
-    /// <summary>True when the interactive desktop is currently locked / on the secure desktop.</summary>
-    public static bool IsDesktopLocked()
+    /// <summary>
+    /// What the interactive desktop is doing. Three states, not a boolean: "we could not tell"
+    /// and "it is locked" both stop automation, but they are different sentences to show a user,
+    /// and only one of them is fixed by unlocking the screen.
+    /// </summary>
+    public enum DesktopState
+    {
+        /// <summary>The normal desktop is up and input will land where Live is.</summary>
+        Interactive,
+
+        /// <summary>The lock screen or the screensaver desktop owns the input.</summary>
+        Locked,
+
+        /// <summary>The input desktop could not be read at all.</summary>
+        Undetermined,
+    }
+
+    /// <summary>
+    /// Asks Windows which desktop is receiving input and reads its name. Live's window lives on
+    /// "Default"; "Screen-saver" and "Winlogon" are the secure ones, where a click would be
+    /// delivered to the lock screen rather than to Live.
+    /// </summary>
+    public static DesktopState QueryDesktop()
     {
         var desktop = NativeMethods.OpenInputDesktop(0, false, NativeMethods.DesiredRightsReadObjects);
-        if (desktop == IntPtr.Zero) return true;
-        NativeMethods.CloseDesktop(desktop);
-        return false;
+        if (desktop == IntPtr.Zero) return DesktopState.Undetermined;
+
+        try
+        {
+            var name = new StringBuilder(256);
+            if (!NativeMethods.GetUserObjectInformationW(
+                    desktop, NativeMethods.UoiName, name, (uint)(name.Capacity * 2), out _))
+                return DesktopState.Undetermined;
+
+            return name.ToString() switch
+            {
+                "Default" => DesktopState.Interactive,
+                "Screen-saver" or "Winlogon" => DesktopState.Locked,
+                _ => DesktopState.Undetermined,
+            };
+        }
+        finally
+        {
+            NativeMethods.CloseDesktop(desktop);
+        }
     }
+
+    /// <summary>True when input must not be sent, whether because the desktop is locked or because it cannot be checked.</summary>
+    public static bool IsDesktopLocked() => QueryDesktop() != DesktopState.Interactive;
 
     public static IntPtr GetForegroundWindow() => NativeMethods.GetForegroundWindow();
 

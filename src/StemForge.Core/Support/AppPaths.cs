@@ -32,7 +32,16 @@ public static class AppPaths
 
     public static string WorkFolder(string jobId) => Path.Combine(WorkRoot, jobId);
 
+    /// <summary>
+    /// Where a Live session that was still open when a run started gets its unsaved work written
+    /// to, under a name that cannot collide with a real project.
+    /// </summary>
+    public static string RecoveryRoot => Path.Combine(Root, "recovered");
+
     public static string LockFile => Path.Combine(Root, "runner.lock");
+
+    /// <summary>Which Live process the last launch started, so orphans stay attributable.</summary>
+    public static string LiveLaunchRecordFile => Path.Combine(Root, "live-launched.json");
 
     public static void EnsureCreated()
     {

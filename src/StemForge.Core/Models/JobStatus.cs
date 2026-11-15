@@ -40,6 +40,11 @@ public enum ErrorKind
     // Live environment problems (pause the batch, safe to resume once fixed).
     LiveNotInstalled,
     LiveVersionUnsupported,
+    /// <summary>
+    /// No longer raised: a run now saves and closes any Live it finds instead of pausing
+    /// (see LiveSessionTakeover). The member stays because the queue persists these values
+    /// positionally and old rows still name it.
+    /// </summary>
     LiveAlreadyRunningWithUserProject,
     LiveStartupFailed,
     LiveWindowNotFound,
@@ -58,4 +63,11 @@ public enum ErrorKind
     AnotherRunnerActive,
     Cancelled,
     Unknown,
+
+    /// <summary>
+    /// Live has the Separate Stems command in its menu but will not enable it, which means the
+    /// clip is not selected in the way the command needs. Added last because the queue persists
+    /// these values positionally and older rows still name the earlier ones.
+    /// </summary>
+    ClipNotSelected,
 }

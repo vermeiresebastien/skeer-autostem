@@ -117,7 +117,8 @@ tests/StemForge.Tests       88 automated tests
 docs/SETUP.md               setup guide
 docs/TEST-REPORT.md         test report, benchmarks and outstanding checks
 docs/LIVE-AUTOMATION.md     how the Ableton Live automation works, and what it depends on
-artifacts/SkeerAutoSTEM         published single-file Windows build
+launch/                   what you run: the exe + the installer (gitignored, built by build.ps1)
+artifacts/                build intermediates: published app, companion and installers
 ```
 
 ---
@@ -131,9 +132,12 @@ dotnet build StemForge.slnx -c Release
 # run the automated tests
 dotnet test tests/StemForge.Tests/StemForge.Tests.csproj
 
-# produce the single-file Windows build
+# produce the single-file Windows build + installer, and fill the launch folder
 ./build.ps1
-# -> artifacts/SkeerAutoSTEM/SkeerAutoSTEM.exe   (self-contained, no .NET install required)
+# -> launch/SkeerAutoSTEM.exe            (self-contained, no .NET install required)
+# -> launch/autostem.exe                 (headless companion: run, verify, bench, dump-ui)
+# -> launch/Skeer_autoSTEM_Setup_v1.1.0.exe
+# (-SkipTests and -SkipInstaller are available; intermediates stay under artifacts/)
 ```
 
 The headless companion drives exactly the same engine, which makes it useful for overnight

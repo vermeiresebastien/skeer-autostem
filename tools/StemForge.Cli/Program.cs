@@ -1,4 +1,5 @@
 using StemForge.Core.Audio;
+using StemForge.Core.Engines;
 using StemForge.Core.Live;
 using StemForge.Core.Live.Projects;
 using StemForge.Core.Logging;
@@ -59,7 +60,7 @@ internal static class Program
               enqueue <path...> --dest DIR            add files or folders to the saved queue without running
                               [--stems all|drums|vocals,drums] [--mode speed|quality]
               run <source...> --dest DIR [options]    separate files (options: --stems, --mode,
-                                                      --simulate, --work)
+                                                      --simulate, --engine live, --work)
               verify <resultFolder>                   re-verify a published result folder
               bench <short> <longer> --dest DIR [--simulate]
                                                       compare All vs Drums Only in both modes
@@ -166,7 +167,7 @@ internal static class Program
         Console.WriteLine($"log    : {log.FilePath}");
         Console.WriteLine();
 
-        ILiveRunner engine = simulate ? new SimulatedLiveRunner(log) : new LiveAutomationRunner(log);
+        var engine = Engine(settings, log, args);
 
         var runner = new BatchRunner(engine);
         var context = new BatchContext
@@ -331,7 +332,7 @@ internal static class Program
                 var queue = new QueueService(new QueueStore(Path.Combine(destination, "bench-queue.json")));
                 queue.AddPaths(new[] { file }, recursive: false, profile, workDestination);
 
-                ILiveRunner engine = simulate ? new SimulatedLiveRunner(log) : new LiveAutomationRunner(log);
+                var engine = Engine(settings, log, args);
                 var context = new BatchContext
                 {
                     Settings = settings,
@@ -511,6 +512,25 @@ internal static class Program
 
         return 0;
     }
+
+    /// <summary>
+    /// The engine for this command: --engine wins over what the settings remember, and
+    /// --simulate replaces whatever was chosen with the test double.
+    /// </summary>
+    private static ISeparator Engine(AppSettings settings, RunLog log, string[] args)
+    {
+        var kind = ParseEngine(Option(args, "--engine")) ?? settings.Engine;
+        return SeparatorFactory.CreateForRun(kind, log, args.Contains("--simulate"));
+    }
+
+    private static EngineKind? ParseEngine(string? value) => value?.ToLowerInvariant() switch
+    {
+        null => null,
+        "live" or "ableton" => EngineKind.Live,
+        "local" or "model" => EngineKind.Local,
+        "cloud" => EngineKind.Cloud,
+        _ => throw new ArgumentException($"unknown engine '{value}' (live, local, cloud)"),
+    };
 
     private static string? Option(string[] args, string name)
     {

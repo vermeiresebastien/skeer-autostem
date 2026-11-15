@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
 using StemForge.Core.Audio;
+using StemForge.Core.Engines;
 using StemForge.Core.Live;
 using StemForge.Core.Live.Projects;
 using StemForge.Core.Logging;
@@ -663,6 +664,15 @@ public sealed class MainViewModel : ObservableObject
     {
         if (IsRunning) return;
 
+        if (!SeparatorFactory.IsImplemented(_settings.Engine))
+        {
+            MessageBox.Show(
+                $"The {_settings.Engine} engine is not in this build.\n\n" +
+                "Switch back to the Ableton Live engine in Settings.",
+                "Skeer autoSTEM", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
         if (SelectedStems == Stems.None)
         {
             MessageBox.Show("Select at least one stem before running.", "Skeer autoSTEM",
@@ -693,6 +703,7 @@ public sealed class MainViewModel : ObservableObject
             }
 
             if (!ShowRunConditions(install)) return;
+            if (!ConfirmLiveTakeover()) return;
         }
 
         var template = install is null
@@ -734,9 +745,7 @@ public sealed class MainViewModel : ObservableObject
         StatusLevel = "Running";
         ResetCounters();
 
-        var engine = IsSimulatedEngine
-            ? new SimulatedLiveRunner(_log)
-            : (ILiveRunner)new LiveAutomationRunner(_log);
+        var engine = SeparatorFactory.CreateForRun(_settings.Engine, _log, IsSimulatedEngine);
 
         _runner = new BatchRunner(engine);
 
@@ -1006,6 +1015,36 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// A run closes every Ableton Live session it finds, so the user gets one look at what that
+    /// means while the window titles still say. Only asked when something is actually open.
+    /// </summary>
+    private bool ConfirmLiveTakeover()
+    {
+        var open = LiveSessionTakeover.Detect();
+        if (open.Count == 0) return true;
+
+        var list = string.Join("\n", open.Select(session => $"  - {session.Description}"));
+
+        var text =
+            "A run needs Ableton Live to itself, so Live is closed and reopened for each " +
+            $"track.\n\nThese sessions are open now and will be saved and closed:\n\n{list}\n\n" +
+            "A set that was already saved is written where it lives. A set that was never saved " +
+            $"goes to\n\n  {AppPaths.RecoveryRoot}\n\n" +
+            "under a name built from its title and the clock, so nothing of yours is replaced. A " +
+            "save that cannot be completed automatically is dropped rather than left blocking the " +
+            "run.\n\nClose these sessions and start the batch?";
+
+        var answer = MessageBox.Show(text, "Skeer autoSTEM - Ableton Live is already open",
+            MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+
+        _log.Info(answer == MessageBoxResult.OK
+            ? $"user confirmed takeover of {open.Count} open Live session(s)"
+            : "run not started: the open Live sessions were left alone");
+
+        return answer == MessageBoxResult.OK;
+    }
+
     private bool ShowRunConditions(LiveInstall install)
     {
         if (_settings.HasConfirmedRunConditions) return true;
@@ -1014,8 +1053,9 @@ public sealed class MainViewModel : ObservableObject
             "Before the batch starts, please leave these conditions in place:\n\n" +
             $"  - Ableton Live: {install.DisplayName}\n" +
             "  - Keep the desktop unlocked. Windows lock or UAC prompts stop automation safely.\n" +
-            "  - Leave Ableton Live closed. Skeer autoSTEM opens and closes its own working set;\n" +
-            "    if your own project is open, the run pauses instead of touching it.\n" +
+            "  - A run owns Ableton Live and closes it between tracks. Anything still open is\n" +
+            "    saved first - unsaved sets go to the recovered folder - and you are asked\n" +
+            "    before a session is closed, so save any work you care about up front.\n" +
             "  - Do not use the mouse/keyboard over the Live window while a track is processing.\n" +
             "  - Windows will be asked to stay awake for the duration of the run.\n" +
             "  - A display scale factor other than 100% is handled, but the Live window must\n" +

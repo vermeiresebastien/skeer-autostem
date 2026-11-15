@@ -120,6 +120,8 @@ public static class InputSimulator
     public const ushort VkControl = 0x11;
     public const ushort VkShift = 0x10;
     public const ushort VkDown = 0x28;
+    public const ushort VkA = 0x41;
+    public const ushort VkS = 0x53;
     public const ushort VkUp = 0x26;
     public const ushort VkLeft = 0x25;
     public const ushort VkRight = 0x27;

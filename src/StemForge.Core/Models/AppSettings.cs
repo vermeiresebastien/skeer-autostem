@@ -1,9 +1,17 @@
+using StemForge.Core.Engines;
+
 namespace StemForge.Core.Models;
 
 /// <summary>User preferences. Persisted separately from the queue.</summary>
 public sealed class AppSettings
 {
     public int SchemaVersion { get; set; } = 1;
+
+    /// <summary>
+    /// Where the stems come from. Ableton Live is the default and, for now, the only engine
+    /// that exists; the value is persisted so a machine configured for a later engine keeps it.
+    /// </summary>
+    public EngineKind Engine { get; set; } = EngineKind.Live;
 
     /// <summary>Chosen output folder, remembered between sessions.</summary>
     public string? OutputFolder { get; set; }
