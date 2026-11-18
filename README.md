@@ -113,11 +113,11 @@ clean even when other windows overlap it.
 src/StemForge.Core          engine: queue, verification, publishing, naming, Live automation
 src/StemForge.App           WPF desktop app (the product)
 tools/StemForge.Cli         headless companion + diagnostics (run, verify, bench, dump-ui)
-tests/StemForge.Tests       88 automated tests
+tests/StemForge.Tests       364 automated tests
 docs/SETUP.md               setup guide
 docs/TEST-REPORT.md         test report, benchmarks and outstanding checks
 docs/LIVE-AUTOMATION.md     how the Ableton Live automation works, and what it depends on
-launch/                   what you run: the exe + the installer (gitignored, built by build.ps1)
+launch/                   what you run: the exes, their .NET notices + the installer (gitignored, built by build.ps1)
 artifacts/                build intermediates: published app, companion and installers
 ```
 
@@ -136,6 +136,9 @@ dotnet test tests/StemForge.Tests/StemForge.Tests.csproj
 ./build.ps1
 # -> launch/SkeerAutoSTEM.exe            (self-contained, no .NET install required)
 # -> launch/autostem.exe                 (headless companion: run, verify, bench, dump-ui)
+# -> launch/ThirdPartyNotices.dotnet.txt, LICENSE.dotnet-runtime.txt
+#                                        (a self-contained build redistributes the .NET runtime,
+#                                         so Microsoft's notices have to travel with it)
 # -> launch/Skeer_autoSTEM_Setup_v1.1.0.exe
 # (-SkipTests and -SkipInstaller are available; intermediates stay under artifacts/)
 ```
@@ -181,9 +184,11 @@ any given machine.
 ## Requirements
 
 - Windows 11 (tested on Windows 11 / 10 22H2)
-- **Ableton Live 12.1 or newer**, installed separately. Developed and verified against
-  **Ableton Live 12.3.5 Suite**.
-- An unlocked interactive desktop while a batch is running.
+- **Ableton Live 12.3 Suite or newer**, installed separately. Developed and verified against
+  **Ableton Live 12.3.5 Suite**, and run end to end against **12.3.2 Suite** — the two installs
+  this desk has, and the automation behaves the same on both.
+- A desktop that stays **unlocked**. Live needs a few seconds of real input to set a job up; the
+  minutes-long render after that needs none, and the screen goes back to you for it.
 
 See [docs/TEST-REPORT.md](docs/TEST-REPORT.md) for exactly what has been verified against
 Ableton Live and what still needs a check on your own machine.

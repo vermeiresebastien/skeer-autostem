@@ -35,12 +35,21 @@ defaults; it never touches your audio or your Live sets.
 
 autostem finds Live automatically on first launch — it looks at the registry, the
 standard Ableton folders (including the hidden `.Live 12 Suite_updated` style folders an
-update creates) and any running Live process, and picks the **newest** build it finds.
-The **Ableton Live** panel in the app shows what it settled on, for example:
+update creates) and any running Live process. Of what it finds it prefers an ordinary
+install folder, and takes the **newest** build within that; an update-staging folder is
+tried only when there is nothing else, because launching it starts a fresh Core Library
+import that leaves Live's main window disabled for as long as that takes. The **Ableton
+Live** panel in the app shows what it settled on, for example:
 
 ```
-Ableton Live: Ableton Live 12.3.5 Suite (C:\ProgramData\Ableton\.Live 12 Suite_updated\Program\Ableton Live 12 Suite.exe)
+Ableton Live: Ableton Live 12.3.2 Suite (C:\ProgramData\Ableton\Live 12 Suite\Program\Ableton Live 12 Suite.exe)
 ```
+
+If your Live updates have left both `Live 12 Suite` and `.Live 12 Suite_updated` under
+`C:\ProgramData\Ableton`, the dotless one is the install you actually run.
+
+The path you pick is remembered exactly as you picked it — if you point at the staging
+folder yourself, that is what gets launched, import and all.
 
 If detection fails, or picks a build you do not want:
 
@@ -48,9 +57,14 @@ If detection fails, or picks a build you do not want:
 - **Browse…** lets you point at the executable yourself
   (`…\Program\Ableton Live 12 Suite.exe`).
 
-The verified path is remembered. Stem separation needs **Live 12.1 or newer**; the app
-tells you if the build you selected is too old. Live itself is a separate prerequisite —
-autostem does not install or modify it.
+The verified path is remembered. Stem separation needs **Live 12.3 Suite or newer**; the app tells
+you if the build you selected is too old, or names an edition that does not have the separator
+(Standard, Intro, Lite). That edition check can only refuse what it can identify, and identification
+is by the name the install carries rather than by a licence check - on the installs this desk has,
+Ableton's own version info reports no edition at all (read 2026-11-16), so the folder and file names
+are the signal. An install moved into a folder that does not name its edition is therefore neither
+confirmed nor refused: the run starts and Live's own Create menu decides. Live itself is a separate
+prerequisite — autostem does not install or modify it.
 
 ---
 
@@ -90,10 +104,11 @@ failed tracks, or add new files.*, *Ableton Live was not found. Open Diagnostics
 it.* and so on. The counts beside it come from the queue itself, so two failed rows read
 "2 failed · 0 ready" even before any run has happened.
 
-On the first run, Skeer autoSTEM shows the conditions a run needs (leave the desktop
-unlocked, leave Live closed, do not use the mouse over Live while a track is processing).
-Accept it and the batch starts. You can prepare a whole queue with Live closed; Live is only
-started when you press Run.
+On the first run, Skeer autoSTEM shows the conditions a run needs (a run owns Live and closes
+it between tracks, each track takes the screen for a few seconds and hands it back before the
+render, do not click inside the Live window during those seconds, Windows is asked to stay
+awake, Live must stay on the monitor it launched on). Accept it and the batch starts. You can
+prepare a whole queue with Live closed; Live is only started when you press Run.
 
 While a batch runs the command bar shows the current file, the stage, and progress. A
 per-track percentage only appears when the engine gives a reliable one; until then the
@@ -119,9 +134,13 @@ Skeer autoSTEM is built for unattended batches:
 - **One track at a time.** Live is started on a purpose-built working project containing
   only that track, so a stale file from an earlier track cannot be mistaken for a new
   result.
-- **It stops safely.** If Live loses focus, Windows locks, Live crashes, or an unexpected
-  dialog appears, automated input stops immediately and the batch pauses with the reason.
-  The queue is preserved. Fix the condition and press Run to resume.
+- **It stops safely.** Input is stopped and the batch paused when the run is *about to press
+  something* and the desktop is locked, or Live has lost the foreground and cannot take it back
+  after several attempts, or Live exits, or a dialog appears that is not one of the expected ones
+  - each with its reason in the log. A render already in flight is not stopped by any of that: it
+  needs no input, so locking the screen or using another window while Live works leaves the track
+  running, and the lock or the stolen focus is noticed before the next track's clicks instead. The
+  queue is preserved. Fix the condition and press Run to resume.
 - **Failure isolation.** A file-specific failure (unsupported or corrupt file, missing
   source, a stem Live did not produce) is logged and skipped so the rest of the batch
   continues. Anything that leaves Live or the destination in an unknown state pauses the
@@ -131,10 +150,10 @@ Conditions the automation depends on:
 
 | Condition | Why |
 | --- | --- |
-| Desktop left **unlocked** | Synthetic input needs an interactive desktop; a locked desktop is detected and the batch pauses. |
-| Live sessions that are open get saved and closed at Run | A run owns Live. Anything still open is saved first - an unsaved set lands in `…\SkeerAutoSTEM\recovered\` under a stamped name - and the app asks before closing it. Save your own work up front if you would rather pick the name. |
-| Live not busy with file analysis | Live accepts the Separate Stems command and drops it while scanning its library. The run waits for the status line to go quiet, which on a large library can take minutes. |
-| Do not use mouse/keyboard over **Live** while a track processes | Taking focus away from Live stops automated input safely, but interrupts the track. |
+| Desktop **unlocked** while a track is being set up | Synthetic input needs an interactive desktop, so a locked desktop is detected and the batch pauses rather than typing into the lock screen. A render already running is unaffected: lock it if you like, and press Run again after unlocking. |
+| Live sessions that are open get saved and closed at Run | A run owns Live. The app lists the sessions that are open and asks **once, before the run starts**; the headless companion does not ask and logs what it closed. Anything still open is saved first - an unsaved set lands in `…\SkeerAutoSTEM\recovered\` under a stamped name. Save your own work up front if you would rather pick the name. A run that takes over Live never discards an open set: if a session has unsaved changes that cannot be named and written to the recovery folder, the run stops before closing anything, names the session it left open, and only a session proven saved - or one with no unsaved changes - is ever closed or terminated. |
+| Live not busy with file analysis | Live accepts the Separate Stems command and drops it while scanning its library. The run presses Live's own analysis-pause control when that scan is in progress, and waits for the status line to go quiet, which on a large library can take minutes. The wait is bounded and the run then continues anyway - what decides whether the command can be taken is Live greying it out or not. |
+| Do not use mouse/keyboard over **Live** while it is being **set up** | The few seconds that select the clip, open the Create menu and tick the dialog's boxes are real input, and taking focus away from Live stops it safely but interrupts the track. **The render itself needs no input**: the moment `Separate` is pressed the screen goes back to whatever window had it, and you can work normally - including over Live - until the next track. |
 | **Live launched on the monitor it starts on** | The window is maximised and coordinates are window-relative, so it survives moving/resizing, but it must stay on that display. |
 | Display scaling | Handled: the app is per-monitor DPI aware. |
 

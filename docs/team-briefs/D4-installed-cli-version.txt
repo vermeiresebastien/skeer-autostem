@@ -1,0 +1,18 @@
+autostem - batch stem separation for Ableton Live (Skeer autoSTEM companion)
+
+  locate                                  list detected Ableton Live installations
+  prepare <source> [--work DIR]           build the working Live Set for a file and print its path
+  enqueue <path...> --dest DIR            add files or folders to the saved queue without running
+                  [--stems all|drums|vocals,drums] [--mode speed|quality]
+  run <source...> --dest DIR [options]    separate files (options: --stems, --mode,
+                                          --simulate, --engine live, --work)
+  verify <resultFolder>                   re-verify a published result folder
+  bench <short> <longer> --dest DIR [--simulate]
+                                          compare All vs Drums Only in both modes
+  dump-ui [--window TEXT] [--depth N] [--open-menu NAME]
+                                          dump UI Automation tree of a window
+  uia-invoke --button TEXT [--window TEXT]
+                                          press a button through UI Automation
+  click-probe --name TEXT [--window TEXT] [--mode post|send|real|invoke] [--activate] [--close]
+                                          press one element and print the menus it owns
+                                          before and after, to show whether it worked

@@ -1,0 +1,8 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  StemForge.Core -> D:\Projects\skeer-audio\autostem\src\StemForge.Core\bin\Release\net10.0-windows\StemForge.Core.dll
+  StemForge.Tests -> D:\Projects\skeer-audio\autostem\tests\StemForge.Tests\bin\Release\net10.0-windows\StemForge.Tests.dll
+Test run for D:\Projects\skeer-audio\autostem\tests\StemForge.Tests\bin\Release\net10.0-windows\StemForge.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   364, Skipped:     0, Total:   364, Duration: 20 s - StemForge.Tests.dll (net10.0)

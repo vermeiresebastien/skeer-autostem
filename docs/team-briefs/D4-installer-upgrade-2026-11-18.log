@@ -1,0 +1,139 @@
+﻿2026-11-18 10:51:30.699   Log opened. (Time zone: UTC+01:00)
+2026-11-18 10:51:30.699   Setup version: Inno Setup version 6.7.4
+2026-11-18 10:51:30.699   Original Setup EXE: D:\Projects\skeer-audio\autostem\launch\Skeer_autoSTEM_Setup_v1.1.0.exe
+2026-11-18 10:51:30.699   Setup command line: /SL5="$820C86,137645931,921600,D:\Projects\skeer-audio\autostem\launch\Skeer_autoSTEM_Setup_v1.1.0.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG=D:\Projects\skeer-audio\autostem\docs\team-briefs\D4-installer-upgrade-2026-11-18.log 
+2026-11-18 10:51:30.699   Windows version: 10.0.19045
+2026-11-18 10:51:30.699   Windows architecture: x64 (64-bit)
+2026-11-18 10:51:30.699   Machine types supported by system: x86 x64
+2026-11-18 10:51:30.699   User privileges: None
+2026-11-18 10:51:30.702   Administrative install mode: No
+2026-11-18 10:51:30.702   Install mode root key: HKEY_CURRENT_USER
+2026-11-18 10:51:30.702   64-bit install mode: Yes
+2026-11-18 10:51:30.702   RedirectionGuard status for current process: Enabled in enforcing mode
+2026-11-18 10:51:30.703   Created temporary directory: C:\Users\SEBAST~1\AppData\Local\Temp\is-OJ3S2O2BOW.tmp
+2026-11-18 10:51:30.851   Found 2 files to register with RestartManager.
+2026-11-18 10:51:30.851   Calling RestartManager's RmGetList.
+2026-11-18 10:51:30.883   RmGetList finished successfully.
+2026-11-18 10:51:30.883   RestartManager found no applications using one of our files.
+2026-11-18 10:51:30.894   Starting the installation process.
+2026-11-18 10:51:30.898   Directory for uninstall files: C:\Users\Sebastien\AppData\Local\Programs\Skeer autoSTEM
+2026-11-18 10:51:30.898   Will append to existing uninstall log: C:\Users\Sebastien\AppData\Local\Programs\Skeer autoSTEM\unins000.dat
+2026-11-18 10:51:30.909   -- File entry --
+2026-11-18 10:51:30.909   Dest filename: C:\Users\Sebastien\AppData\Local\Programs\Skeer autoSTEM\unins000.exe
+2026-11-18 10:51:30.909   Non-default bitness: 32-bit
+2026-11-18 10:51:30.917   Time stamp of our file: 2026-11-18 10:51:30.533
+2026-11-18 10:51:30.917   Dest file exists.
+2026-11-18 10:51:30.917   Time stamp of existing file: 2026-11-15 23:47:37.449
+2026-11-18 10:51:30.917   Version of our file: 51.1054.0.0
+2026-11-18 10:51:30.919   Version of existing file: 51.1054.0.0
+2026-11-18 10:51:30.919   Installing the file.
+2026-11-18 10:51:30.927   Leaving temporary file in place for now.
+2026-11-18 10:51:30.927   -- File entry --
+2026-11-18 10:51:30.927   Dest filename: C:\Users\Sebastien\AppData\Local\Programs\Skeer autoSTEM\SkeerAutoSTEM.exe
+2026-11-18 10:51:30.928   Time stamp of our file: 2026-11-18 10:45:12.000
+2026-11-18 10:51:30.928   Dest file exists.
+2026-11-18 10:51:30.928   Time stamp of existing file: 2026-11-15 23:46:36.000
+2026-11-18 10:51:30.928   Installing the file.
+2026-11-18 10:51:32.577   Successfully installed the file.
+2026-11-18 10:51:32.577   -- File entry --
+2026-11-18 10:51:32.577   Dest filename: C:\Users\Sebastien\AppData\Local\Programs\Skeer autoSTEM\autostem.exe
+2026-11-18 10:51:32.578   Time stamp of our file: 2026-11-18 10:45:26.000
+2026-11-18 10:51:32.578   Dest file exists.
+2026-11-18 10:51:32.578   Time stamp of existing file: 2026-11-15 23:46:46.000
+2026-11-18 10:51:32.578   Installing the file.
+2026-11-18 10:51:34.155   Successfully installed the file.
+2026-11-18 10:51:34.155   -- File entry --
+2026-11-18 10:51:34.155   Dest filename: C:\Users\Sebastien\AppData\Local\Programs\Skeer autoSTEM\ThirdPartyNotices.dotnet.txt
+2026-11-18 10:51:34.155   Time stamp of our file: 2026-08-22 14:49:44.000
+2026-11-18 10:51:34.155   Dest file exists.
+2026-11-18 10:51:34.155   Time stamp of existing file: 2026-08-22 14:49:44.000
+2026-11-18 10:51:34.155   Installing the file.
+2026-11-18 10:51:34.158   Successfully installed the file.
+2026-11-18 10:51:34.158   -- File entry --
+2026-11-18 10:51:34.158   Dest filename: C:\Users\Sebastien\AppData\Local\Programs\Skeer autoSTEM\LICENSE.dotnet-runtime.txt
+2026-11-18 10:51:34.158   Time stamp of our file: 2026-08-22 14:50:14.000
+2026-11-18 10:51:34.158   Dest file exists.
+2026-11-18 10:51:34.158   Time stamp of existing file: 2026-08-22 14:50:14.000
+2026-11-18 10:51:34.158   Installing the file.
+2026-11-18 10:51:34.159   Successfully installed the file.
+2026-11-18 10:51:34.159   -- Icon entry --
+2026-11-18 10:51:34.159   Dest filename: C:\Users\Sebastien\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Skeer autoSTEM\Skeer autoSTEM.lnk
+2026-11-18 10:51:34.160   Creating the icon.
+2026-11-18 10:51:34.230   Successfully created the icon.
+2026-11-18 10:51:34.259   -- Icon entry --
+2026-11-18 10:51:34.259   Dest filename: C:\Users\Sebastien\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Skeer autoSTEM\Third-party notices (.NET runtime).lnk
+2026-11-18 10:51:34.259   Creating the icon.
+2026-11-18 10:51:34.263   Successfully created the icon.
+2026-11-18 10:51:34.283   -- Icon entry --
+2026-11-18 10:51:34.283   Dest filename: C:\Users\Sebastien\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Skeer autoSTEM\Uninstall Skeer autoSTEM.lnk
+2026-11-18 10:51:34.284   Creating the icon.
+2026-11-18 10:51:34.288   Successfully created the icon.
+2026-11-18 10:51:34.309   -- Icon entry --
+2026-11-18 10:51:34.310   Dest filename: C:\Users\Sebastien\Desktop\Skeer autoSTEM.lnk
+2026-11-18 10:51:34.310   Creating the icon.
+2026-11-18 10:51:34.314   Successfully created the icon.
+2026-11-18 10:51:34.442   -- Registry entry --
+2026-11-18 10:51:34.442   Key: HKEY_CURRENT_USER\Software\Classes\SkeerAutoSTEM.Audio
+2026-11-18 10:51:34.442   Creating or opening the key.
+2026-11-18 10:51:34.442   Creating or setting the value.
+2026-11-18 10:51:34.442   Successfully created or set the value.
+2026-11-18 10:51:34.442   -- Registry entry --
+2026-11-18 10:51:34.442   Key: HKEY_CURRENT_USER\Software\Classes\SkeerAutoSTEM.Audio\shell\open\command
+2026-11-18 10:51:34.442   Creating or opening the key.
+2026-11-18 10:51:34.442   Creating or setting the value.
+2026-11-18 10:51:34.442   Successfully created or set the value.
+2026-11-18 10:51:34.442   -- Registry entry --
+2026-11-18 10:51:34.442   Key: HKEY_CURRENT_USER\Software\Classes\SkeerAutoSTEM.Audio\DefaultIcon
+2026-11-18 10:51:34.442   Creating or opening the key.
+2026-11-18 10:51:34.442   Creating or setting the value.
+2026-11-18 10:51:34.442   Successfully created or set the value.
+2026-11-18 10:51:34.442   -- Registry entry --
+2026-11-18 10:51:34.443   Key: HKEY_CURRENT_USER\Software\Classes\.wav
+2026-11-18 10:51:34.443   Creating or opening the key.
+2026-11-18 10:51:34.443   Creating or setting the value.
+2026-11-18 10:51:34.443   Successfully created or set the value.
+2026-11-18 10:51:34.443   -- Registry entry --
+2026-11-18 10:51:34.443   Key: HKEY_CURRENT_USER\Software\Classes\.aif
+2026-11-18 10:51:34.443   Creating or opening the key.
+2026-11-18 10:51:34.443   Creating or setting the value.
+2026-11-18 10:51:34.443   Successfully created or set the value.
+2026-11-18 10:51:34.443   -- Registry entry --
+2026-11-18 10:51:34.443   Key: HKEY_CURRENT_USER\Software\Classes\.aiff
+2026-11-18 10:51:34.443   Creating or opening the key.
+2026-11-18 10:51:34.443   Creating or setting the value.
+2026-11-18 10:51:34.443   Successfully created or set the value.
+2026-11-18 10:51:34.443   -- Registry entry --
+2026-11-18 10:51:34.443   Key: HKEY_CURRENT_USER\Software\Classes\.wav\OpenWithProgids
+2026-11-18 10:51:34.443   Value name: SkeerAutoSTEM.Audio
+2026-11-18 10:51:34.443   Creating or opening the key.
+2026-11-18 10:51:34.443   Creating or setting the value.
+2026-11-18 10:51:34.443   Successfully created or set the value.
+2026-11-18 10:51:34.443   -- Registry entry --
+2026-11-18 10:51:34.443   Key: HKEY_CURRENT_USER\Software\Classes\.aif\OpenWithProgids
+2026-11-18 10:51:34.443   Value name: SkeerAutoSTEM.Audio
+2026-11-18 10:51:34.443   Creating or opening the key.
+2026-11-18 10:51:34.443   Creating or setting the value.
+2026-11-18 10:51:34.443   Successfully created or set the value.
+2026-11-18 10:51:34.443   -- Registry entry --
+2026-11-18 10:51:34.443   Key: HKEY_CURRENT_USER\Software\Classes\.aiff\OpenWithProgids
+2026-11-18 10:51:34.443   Value name: SkeerAutoSTEM.Audio
+2026-11-18 10:51:34.443   Creating or opening the key.
+2026-11-18 10:51:34.443   Creating or setting the value.
+2026-11-18 10:51:34.443   Successfully created or set the value.
+2026-11-18 10:51:34.443   -- Registry entry --
+2026-11-18 10:51:34.443   Key: HKEY_CURRENT_USER\Software\Classes\.mp3\OpenWithProgids
+2026-11-18 10:51:34.443   Value name: SkeerAutoSTEM.Audio
+2026-11-18 10:51:34.443   Creating or opening the key.
+2026-11-18 10:51:34.443   Creating or setting the value.
+2026-11-18 10:51:34.443   Successfully created or set the value.
+2026-11-18 10:51:34.443   Saving uninstall information.
+2026-11-18 10:51:34.443   Renaming uninstaller.
+2026-11-18 10:51:34.445   Deleting uninstall key left over from previous non administrative install.
+2026-11-18 10:51:34.446   Creating new uninstall key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}_is1
+2026-11-18 10:51:34.446   Writing uninstall key values.
+2026-11-18 10:51:34.447   Detected previous administrative 64-bit install? No
+2026-11-18 10:51:34.447   Detected previous administrative 32-bit install? No
+2026-11-18 10:51:34.451   Installation process succeeded.
+2026-11-18 10:51:34.452   Need to restart Windows? No
+2026-11-18 10:51:34.456   Deinitializing Setup.
+2026-11-18 10:51:34.465   Log closed.
