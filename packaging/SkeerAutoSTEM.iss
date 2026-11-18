@@ -45,12 +45,19 @@ CloseApplications=yes
 
 [Files]
 ; The desktop app and the headless companion: both self-contained single files, so Ableton
-; aside, nothing else needs to be installed.
+; aside, no runtime needs to be installed.
 Source: "..\artifacts\SkeerAutoSTEM\SkeerAutoSTEM.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\artifacts\autostem-cli\autostem.exe"; DestDir: "{app}"; Flags: ignoreversion
+; A self-contained publish redistributes the .NET runtime, and Microsoft's licence requires the
+; notices to travel with it. build.ps1 copies both texts out of the runtime packs it published
+; from, so they sit next to each exe in artifacts\. One copy per install is enough: the two exes
+; share {app}, and they are the same files whoever installs them.
+Source: "..\artifacts\SkeerAutoSTEM\ThirdPartyNotices.dotnet.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\artifacts\SkeerAutoSTEM\LICENSE.dotnet-runtime.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"
+Name: "{group}\Third-party notices (.NET runtime)"; Filename: "{app}\ThirdPartyNotices.dotnet.txt"; WorkingDir: "{app}"
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 

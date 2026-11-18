@@ -3,11 +3,12 @@
     Builds, tests and packages StemForge for Windows.
 
 .DESCRIPTION
-    Produces a single self-contained executable at artifacts\StemForge\StemForge.exe,
-    a headless companion at artifacts\stemforge-cli\, and an Inno Setup installer at
-    artifacts\installers\. Whatever you actually run is then copied into launch\ at the
-    repository root, so there is one folder to open the app from. Ableton Live remains a
-    separately installed prerequisite.
+    Produces a self-contained desktop executable at artifacts\SkeerAutoSTEM\, a headless
+    companion at artifacts\autostem-cli\, and an Inno Setup installer at
+    artifacts\installers\. Both publish folders also receive the .NET runtime licence and
+    third-party notices, because a self-contained build redistributes the runtime. Whatever
+    you actually run is then copied into launch\ at the repository root, so there is one
+    folder to open the app from. Ableton Live remains a separately installed prerequisite.
 
 .EXAMPLE
     ./build.ps1
@@ -59,6 +60,44 @@ dotnet publish (Join-Path $repo 'tools/StemForge.Cli/StemForge.Cli.csproj') `
     -o $cliOut
 if ($LASTEXITCODE -ne 0) { throw 'companion publish failed' }
 
+# Both executables above are self-contained, which means the .NET runtime ships inside them and
+# Microsoft's licence and third-party notices have to ship beside them. They are copied out of the
+# runtime packs the publish restored, so the notices match the runtime rather than whatever copy
+# of the SDK happens to be on this machine.
+function Get-NewestRuntimePack([string]$packageId) {
+    $root = Join-Path $env:USERPROFILE ".nuget/packages/$packageId"
+    if (-not (Test-Path $root)) { return $null }
+
+    Get-ChildItem $root -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^\d+(\.\d+){2,3}$' } |
+        Sort-Object { [version]$_.Name } -Descending |
+        Select-Object -First 1
+}
+
+$corePack = Get-NewestRuntimePack 'microsoft.netcore.app.runtime.win-x64'
+$desktopPack = Get-NewestRuntimePack 'microsoft.windowsdesktop.app.runtime.win-x64'
+
+if (-not $corePack -or -not $desktopPack) {
+    throw 'the .NET runtime packs were not found in the NuGet cache; run a publish before packaging'
+}
+if ($corePack.Name -ne $desktopPack.Name) {
+    throw "runtime packs disagree on version: core $($corePack.Name), desktop $($desktopPack.Name)"
+}
+
+$notices = @(
+    @{ Source = (Join-Path $corePack.FullName 'THIRD-PARTY-NOTICES.TXT'); Name = 'ThirdPartyNotices.dotnet.txt' },
+    @{ Source = (Join-Path $desktopPack.FullName 'LICENSE');              Name = 'LICENSE.dotnet-runtime.txt' }
+)
+
+foreach ($target in @($appOut, $cliOut)) {
+    foreach ($notice in $notices) {
+        if (-not (Test-Path $notice.Source)) { throw "notice file missing: $($notice.Source)" }
+        Copy-Item $notice.Source (Join-Path $target $notice.Name) -Force
+    }
+}
+
+Write-Host ("Shipping .NET {0} licence and third-party notices beside both executables" -f $corePack.Name) -ForegroundColor Cyan
+
 $installers = Join-Path $repo 'artifacts/installers'
 
 if (-not $SkipInstaller) {
@@ -91,6 +130,7 @@ $launch = Join-Path $repo 'launch'
 New-Item -ItemType Directory -Path $launch -Force | Out-Null
 Copy-Item (Join-Path $appOut 'SkeerAutoSTEM.exe') $launch -Force
 Copy-Item (Join-Path $cliOut 'autostem.exe') $launch -Force
+foreach ($notice in $notices) { Copy-Item (Join-Path $appOut $notice.Name) $launch -Force }
 Get-ChildItem $launch -Filter 'Skeer_autoSTEM_Setup_*.exe' | Remove-Item -Force
 
 $setup = Get-ChildItem $installers -Filter 'Skeer_autoSTEM_Setup_*.exe' -ErrorAction SilentlyContinue |
@@ -101,5 +141,5 @@ Write-Host ''
 Write-Host 'Done. Launch from:' -ForegroundColor Green
 Get-ChildItem $launch -File | ForEach-Object { Write-Host ("  {0,-40} ({1:N1} MB)" -f $_.Name, ($_.Length / 1MB)) }
 Write-Host ''
-Write-Host 'Ableton Live 12.1+ is a separate prerequisite.' -ForegroundColor Yellow
+Write-Host 'Ableton Live 12.3 Suite or newer is a separate prerequisite.' -ForegroundColor Yellow
 if (-not $setup) { Write-Host 'No installer was produced this run.' -ForegroundColor Yellow }
