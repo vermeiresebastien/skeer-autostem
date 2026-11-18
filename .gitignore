@@ -8,6 +8,11 @@ artifacts/
 ## Unified launch folder - refreshed by build.ps1, always derived, never committed
 launch/
 
+## Python bytecode - written into the probe folder whenever anything imports it, so it is routinely
+## a compile of the *previous* bytes; derived, and never the file the pin or Live reads.
+__pycache__/
+*.pyc
+
 ## Local scratch
 *.user
 *.suo
