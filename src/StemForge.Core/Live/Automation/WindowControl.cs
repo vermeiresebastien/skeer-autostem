@@ -73,6 +73,10 @@ public static class WindowControl
 
     public static string GetTitle(IntPtr hWnd) => NativeMethods.GetTitle(hWnd);
 
+    /// <summary>True while the window exists and is on screen. A closed dialog stops being both.</summary>
+    public static bool IsVisible(IntPtr hWnd) =>
+        hWnd != IntPtr.Zero && NativeMethods.IsWindow(hWnd) && NativeMethods.IsWindowVisible(hWnd);
+
     /// <summary>
     /// Brings the window to the foreground.
     ///
@@ -97,10 +101,12 @@ public static class WindowControl
         NativeMethods.BringWindowToTop(hWnd);
         if (NativeMethods.SetForegroundWindow(hWnd) && IsForeground(hWnd)) return true;
 
-        // The ALT tap is the standard way to become eligible for SetForegroundWindow.
+        // The ALT tap is the standard way to become eligible for SetForegroundWindow. It goes
+        // through the same door as every other keystroke, and it is the one call site that cannot
+        // ask who is in front - taking the foreground is what it is for.
         try
         {
-            InputSimulator.KeyPress(InputSimulator.VkLeftAlt);
+            GuardedInput.TapAltForActivation("the ALT tap that asks to become foreground-eligible");
             Thread.Sleep(60);
             if (NativeMethods.SetForegroundWindow(hWnd) && IsForeground(hWnd)) return true;
         }
@@ -149,6 +155,80 @@ public static class WindowControl
         return IsForeground(hWnd);
     }
 
+    /// <summary>
+    /// What an activation attempt ended with, and the distinction the caller needs.
+    ///
+    /// <see cref="TargetIsForeground"/> means the exact window asked for is in front.
+    /// <see cref="ProcessIsForeground"/> only means that *a* window of that process is - which is
+    /// Live being Live (its own modal took the foreground) and is not a licence to click a covered
+    /// window. A bool cannot carry both, and a caller that read the lenient one as the strict one
+    /// pressed a button on a dialog the user could not see and spent one of its six answers on it.
+    /// </summary>
+    public readonly record struct ActivationOutcome(bool TargetIsForeground, bool ProcessIsForeground)
+    {
+        public bool Succeeded => TargetIsForeground || ProcessIsForeground;
+
+        /// <summary>Why a window that did not come forward did not come forward.</summary>
+        public string Describe(IntPtr hWnd) =>
+            TargetIsForeground ? $"'{GetTitle(hWnd)}' is in front"
+            : ProcessIsForeground
+                ? $"the foreground is another window of the same application ('{GetTitle(GetForegroundWindow())}'), " +
+                  $"not '{GetTitle(hWnd)}'"
+                : $"the foreground belongs to '{GetTitle(GetForegroundWindow())}'";
+    }
+
+    /// <summary>
+    /// Brings a window frontmost and believes the read-back rather than the refusal.
+    ///
+    /// SetForegroundWindow is declined - quietly, and with no reason to ask for - while the Start
+    /// menu is open, while a toast is up and while the user is mid-click. All three let go on
+    /// their own within a second or two, which is what a batch can afford to wait; one glance is
+    /// what turned somebody opening his Start menu into LiveLostFocus and a killed Live.
+    ///
+    /// The read-back is asked at two levels, because they mean different things - see
+    /// <see cref="ActivationOutcome"/>. Callers that send input go through
+    /// <see cref="GuardedInput"/>, which re-asks the strict question at the moment of the send;
+    /// this method only decides whether it is worth trying at all.
+    /// </summary>
+    public static ActivationOutcome TryActivateAndReport(IntPtr hWnd, int attempts = ForegroundAttempts)
+    {
+        NativeMethods.GetWindowThreadProcessId(hWnd, out var ownerPid);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            var isTarget = Activate(hWnd) || IsForeground(hWnd);
+            if (isTarget) return new ActivationOutcome(true, true);
+
+            // A modal of the same process holding the foreground is Live being itself, not a window
+            // in the way - the click it wants will reach it, provided it is topmost where the click
+            // lands. GuardedInput is what checks that half.
+            if (ForegroundBelongsTo(ownerPid)) return new ActivationOutcome(false, true);
+
+            if (attempt >= attempts) return new ActivationOutcome(false, false);
+            Thread.Sleep(500);
+        }
+    }
+
+    /// <summary>
+    /// Asks for the window in front and returns true when that window or another of its
+    /// application's took the foreground. A caller about to click a specific window wants
+    /// <see cref="TryActivateAndReport"/> instead, and a caller about to key one wants
+    /// <see cref="GuardedInput.PressKey"/>, which refuses unless the exact window is in front.
+    /// </summary>
+    public static bool TryActivate(IntPtr hWnd, int attempts = ForegroundAttempts) =>
+        TryActivateAndReport(hWnd, attempts).Succeeded;
+
+    /// <summary>True when the frontmost window belongs to that process.</summary>
+    public static bool ForegroundBelongsTo(uint processId)
+    {
+        if (processId == 0) return false;
+        var thread = NativeMethods.GetWindowThreadProcessId(GetForegroundWindow(), out var pid);
+        return thread != 0 && pid == processId;
+    }
+
+    /// <summary>How long a foreground that is not ours is waited out before it is called real.</summary>
+    private const int ForegroundAttempts = 8;
+
     public static bool Maximize(IntPtr hWnd)
     {
         var ok = NativeMethods.ShowWindow(hWnd, NativeMethods.SwMaximize);
@@ -188,4 +268,13 @@ public sealed record WindowRect(int X, int Y, int Width, int Height)
 {
     public int CenterX => X + Width / 2;
     public int CenterY => Y + Height / 2;
+
+    /// <summary>
+    /// A point this fraction of the way across and down the rectangle, in screen pixels.
+    ///
+    /// The rectangle is the window's, so the caption and borders are part of the height being
+    /// multiplied - which is what the profile's fractions were tuned against.
+    /// </summary>
+    public (int Left, int Top) FractionPoint(double xFraction, double yFraction) =>
+        (X + (int)(Width * xFraction), Y + (int)(Height * yFraction));
 }

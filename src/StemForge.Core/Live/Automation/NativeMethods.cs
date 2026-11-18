@@ -135,7 +135,21 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
+    /// <summary>
+    /// Walks a window's ancestry. <c>GA_ROOT</c> turns any child control's handle into the
+    /// top-level window it belongs to, which is what a click and a keystroke are actually
+    /// delivered to - a process id is not, because Live's main window and Live's dead menu popup
+    /// share one.
+    /// </summary>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
+
+    public const uint GaRoot = 2;
+    public const uint GaParent = 1;
+
     public const uint WmClose = 0x0010;
+    public const uint WmKeyDown = 0x0100;
+    public const uint WmKeyUp = 0x0101;
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -181,6 +195,21 @@ internal static class NativeMethods
     public const uint MouseEventRightUp = 0x0010;
     public const uint MouseEventWheel = 0x0800;
     public const uint MouseEventAbsolute = 0x8000;
+
+    /// <summary>
+    /// Required with MOUSEEVENTF_ABSOLUTE whenever the coordinates span more than the primary
+    /// monitor: without it Windows normalises against the primary screen alone and a point on
+    /// any other monitor, or below it, is scaled onto the wrong surface.
+    /// </summary>
+    public const uint MouseEventVirtualDesk = 0x4000;
+
+    public const int SmXVirtualScreen = 76;
+    public const int SmYVirtualScreen = 77;
+    public const int SmCxVirtualScreen = 78;
+    public const int SmCyVirtualScreen = 79;
+
+    [DllImport("user32.dll")]
+    public static extern int GetSystemMetrics(int nIndex);
 
     public const uint KeyEventKeyUp = 0x0002;
     public const uint KeyEventUnicode = 0x0004;

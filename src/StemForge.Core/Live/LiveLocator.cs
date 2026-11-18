@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
 namespace StemForge.Core.Live;
@@ -7,7 +8,9 @@ namespace StemForge.Core.Live;
 /// Finds Ableton Live installations on this machine. Nothing is hard-coded to one
 /// machine: registry uninstall entries, the standard Ableton folders (including the
 /// hidden ".Live 12 Suite_updated" style update folders Live creates) and the path of
-/// a running Live process are all considered, and the newest build wins.
+/// a running Live process are all considered, and the newest build wins - unless a
+/// normal install of its own sits beside it, in which case that one wins. See
+/// <see cref="IsUpdateStagingPath"/>.
 /// </summary>
 public static class LiveLocator
 {
@@ -24,10 +27,50 @@ public static class LiveLocator
             }
         }
 
-        return candidates.Values
-            .OrderByDescending(i => i.ParsedVersion ?? new Version(0, 0))
+        return Rank(candidates.Values);
+    }
+
+    /// <summary>
+    /// The order installs are tried in: a directory Ableton uses to stage an update is last,
+    /// then the newest build, then the path. A staging copy only wins when nothing else exists,
+    /// which is still better than refusing to start.
+    /// </summary>
+    public static IReadOnlyList<LiveInstall> Rank(IEnumerable<LiveInstall> installs) =>
+        installs
+            .OrderBy(i => IsUpdateStagingPath(i.ExePath))
+            .ThenByDescending(i => i.ParsedVersion ?? new Version(0, 0))
             .ThenBy(i => i.ExePath, StringComparer.OrdinalIgnoreCase)
             .ToList();
+
+    /// <summary>
+    /// True for Ableton's own update-staging copy of an install - the install root a patch leaves
+    /// behind, hidden as ".Live 12 Suite_updated" or named with an "_updated" suffix.
+    ///
+    /// It is a complete Live and usually the newer one, which is why plain version ordering used
+    /// to pick it. Launching it is not free: its Core Library has never been imported into the
+    /// database, so the main window comes up disabled - UI Automation reporting the whole subtree
+    /// as two elements - and stays that way for as long as the import takes. A person who runs
+    /// Live normally is running the directory without the dot.
+    ///
+    /// The name that decides this is the install root, two levels above the executable in
+    /// Ableton's fixed `<root>\Program\<Live>.exe` layout - the same shape <see
+    /// cref="LiveInstall.InstallRoot"/> assumes. Any hidden folder in the path would have caught
+    /// things that are not Live installs at all.
+    /// </summary>
+    public static bool IsUpdateStagingPath(string exePath)
+    {
+        if (string.IsNullOrWhiteSpace(exePath)) return false;
+
+        var programFolder = Path.GetDirectoryName(exePath);
+        if (programFolder is null) return false;
+
+        var installRoot = Path.GetDirectoryName(programFolder);
+        if (installRoot is null) return false;
+
+        var name = Path.GetFileName(installRoot);
+        if (name.Length == 0) return false;
+
+        return name[0] == '.' || name.EndsWith("_updated", StringComparison.OrdinalIgnoreCase);
     }
 
     public static LiveInstall? Locate() => FindAll().FirstOrDefault();
@@ -232,24 +275,52 @@ public static class LiveLocator
             var version = info.FileVersion ?? info.ProductVersion ?? string.Empty;
             var product = info.ProductName ?? string.Empty;
 
-            string edition = "Live";
-            foreach (var candidate in new[] { "Suite", "Standard", "Intro", "Lite" })
-            {
-                if (product.Contains(candidate, StringComparison.OrdinalIgnoreCase) ||
-                    exePath.Contains(candidate, StringComparison.OrdinalIgnoreCase))
-                {
-                    edition = candidate;
-                    break;
-                }
-            }
-
-            return new LiveInstall(exePath, version, edition);
+            return new LiveInstall(exePath, version, ResolveEdition(product, exePath));
         }
         catch
         {
             return null;
         }
     }
+
+    /// <summary>
+    /// Which edition a build names, from the two strings a version-info read actually yields plus the
+    /// path it came from.
+    ///
+    /// The version info is asked first and, on the builds this desk has, is never the answer: Ableton
+    /// writes ProductName "Live" for both the 12.3.2 install and its 12.3.5 staging copy (measured
+    /// 2026-11-16). What does resolve "Suite" is the folder and exe name Ableton's own installer makes
+    /// ("...\Live 12 Suite\Program\Ableton Live 12 Suite.exe"). This is therefore name matching, not a
+    /// licence check - it reports what the file system chose to say, and an install moved off Ableton's
+    /// naming says nothing, which is <see cref="LiveInstall.UnknownEdition"/>. The support gate accepts
+    /// unknown on purpose; see <see cref="LiveInstall.EditionsWithoutStemSeparation"/>.
+    ///
+    /// A name counts when it is a word of its own, not a substring: the first candidate wins, so
+    /// "Suite" is read ahead of the lesser products when a path happens to say both.
+    /// </summary>
+    public static string ResolveEdition(string? productName, string? exePath)
+    {
+        foreach (var candidate in LiveInstall.KnownEditions)
+        {
+            if (NamesEdition(candidate, productName) || NamesEdition(candidate, exePath)) return candidate;
+        }
+
+        return LiveInstall.UnknownEdition;
+    }
+
+    /// <summary>
+    /// Whether a name says this edition as a word of its own - bounded by anything that is not a
+    /// letter or a digit, which covers a space, a path separator and a dot alike. Substring matching
+    /// is what this replaced, and it was not harmless once the edition became something the product
+    /// refuses on: "Satellite Sessions", "Standards Library" and "Introduction to Production" all
+    /// contain an edition name and none of them is one, and the answer here can be the difference
+    /// between a batch that runs and a message saying the user's Live cannot do the job.
+    /// </summary>
+    private static bool NamesEdition(string edition, string? text) =>
+        text is not null && Regex.IsMatch(
+            text,
+            @"(^|[^A-Za-z0-9])" + edition + @"([^A-Za-z0-9]|$)",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     /// <summary>
     /// Locations to look for Live's Core Library (which ships the empty-audio-track

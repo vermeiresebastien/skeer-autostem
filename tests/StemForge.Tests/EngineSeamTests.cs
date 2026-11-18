@@ -97,13 +97,37 @@ public sealed class EngineSeamTests
     }
 
     /// <summary>
-    /// A queue on disk names failures by their number, so a new cause has to be added at the end
-    /// or every saved row from an older build changes meaning. This is the guard for that.
+    /// A queue file names the cause that stopped a job. A name this build does not have is not
+    /// forgiven and not skipped: deserialising throws, the file is moved aside as
+    /// <c>.corrupt-*</c> and the whole queue loads empty - so renaming or deleting one of these is
+    /// how somebody's saved batch disappears. QueuePersistenceTests measures both halves of that;
+    /// this check is the guard that keeps the first half from ever happening.
+    ///
+    /// What it deliberately does NOT protect is the order. The list is the set of names this
+    /// repository holds at HEAD (5b1c340), in the shape a queue file can contain them, and a new
+    /// cause may be placed wherever it belongs. The check that used to sit here compared two
+    /// ordinals on the stated premise that queue files store these values positionally; that premise
+    /// is false, so the premise went and the guard now asks the question the truth decides.
     /// </summary>
     [Fact]
-    public void NewFailureCausesAreAppendedRatherThanInserted()
+    public void EveryFailureCauseAQueueCanNameStillExists()
     {
-        Assert.True((int)ErrorKind.ClipNotSelected > (int)ErrorKind.Unknown,
-            "ErrorKind members are persisted positionally; a new cause must come after Unknown");
+        string[] released =
+        [
+            "None", "SourceMissing", "SourceChanged", "UnsupportedFormat", "SourceUnreadable",
+            "DestinationUnwritable", "DestinationMissing", "DiskFull",
+            "LiveNotInstalled", "LiveVersionUnsupported", "LiveAlreadyRunningWithUserProject",
+            "LiveStartupFailed", "LiveWindowNotFound", "LiveLostFocus", "DesktopLocked",
+            "LiveCrashed", "UnexpectedDialog", "LiveErrorDialog", "SeparationTimeout",
+            "SeparationCancelled", "StemsMissing", "StemsUnverified", "PublishFailed",
+            "AnotherRunnerActive", "Cancelled", "Unknown", "ClipNotSelected",
+        ];
+
+        var present = Enum.GetNames<ErrorKind>();
+        var missing = released.Where(name => !present.Contains(name, StringComparer.Ordinal)).ToArray();
+
+        Assert.True(missing.Length == 0,
+            $"a saved queue naming {string.Join(", ", missing)} would no longer load; " +
+            "the cause has to stay reachable by name, or old files are quarantined as .corrupt-*");
     }
 }

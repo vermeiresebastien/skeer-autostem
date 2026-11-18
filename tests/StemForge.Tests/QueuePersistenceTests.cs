@@ -117,4 +117,51 @@ public sealed class QueuePersistenceTests
         var round = store.Load().Single();
         Assert.Equal(Stems.Vocals | Stems.Drums, round.Stems);
     }
+
+    /// <summary>
+    /// The measurement behind the comments in <see cref="ErrorKind"/>: a queue file names failures,
+    /// it does not number them. The retired member is used on purpose - it is the one the comments
+    /// claim must stay present, and this is the claim that has to be true rather than asserted.
+    /// </summary>
+    [Fact]
+    public void AFailureCauseIsWrittenByNameRatherThanByPosition()
+    {
+        using var workspace = new TempWorkspace();
+        var store = new QueueStore(workspace.Path("queue.json"));
+
+        var job = MakeJob(workspace.Path("track.wav"), JobProfile.Default, workspace.Root);
+        job.Status = JobStatus.Failed;
+        job.ErrorKind = ErrorKind.LiveAlreadyRunningWithUserProject;
+        store.Save(new[] { job });
+
+        var raw = File.ReadAllText(store.FilePath);
+        const string key = "\"ErrorKind\": ";
+        var at = raw.IndexOf(key, StringComparison.Ordinal);
+        Assert.True(at >= 0, "the queue file carries no ErrorKind at all: " + raw);
+
+        // The value opens with a quote, so it is a name. A number here would mean the ordinal is
+        // the durable thing, and EngineSeamTests' name guard would be protecting the wrong set.
+        Assert.Equal("\"", raw.Substring(at + key.Length, 1));
+        Assert.Contains("\"LiveAlreadyRunningWithUserProject\"", raw);
+
+        Assert.Equal(ErrorKind.LiveAlreadyRunningWithUserProject, store.Load().Single().ErrorKind);
+    }
+
+    /// <summary>
+    /// The other half: a name this build does not have is not forgiven, so deleting a retired
+    /// member really does strand the files that name it. The damaged queue is moved aside, never
+    /// rewritten.
+    /// </summary>
+    [Fact]
+    public void AQueueNamingAFailureThisBuildDoesNotHaveCannotBeLoaded()
+    {
+        using var workspace = new TempWorkspace();
+        var path = workspace.Path("queue.json");
+        File.WriteAllText(path,
+            "{ \"SchemaVersion\": 1, \"Jobs\": [ { \"Id\": \"job-1\", \"ErrorKind\": \"SomeCauseNeverShipped\" } ] }");
+
+        var store = new QueueStore(path);
+        Assert.Empty(store.Load());
+        Assert.Single(Directory.GetFiles(workspace.Root, "queue.json.corrupt-*"));
+    }
 }

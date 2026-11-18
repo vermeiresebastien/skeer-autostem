@@ -23,9 +23,11 @@ public static class SeparatorFactory
 
     public static IReadOnlyList<EngineInfo> Catalogue { get; } =
     [
+        // The floor is quoted from LiveInstall, not repeated here: this string is shown in the
+        // engine list, so a copy-pasted version number would become a second, untested answer.
         new(EngineKind.Live, "Ableton Live",
-            "Live's own separator, driven through UI Automation. Needs Live 12.1 or newer and " +
-            "the desktop to itself for the duration of the run.",
+            $"Live's own separator, driven through UI Automation. Needs {LiveInstall.RequirementPhrase} " +
+            "and the desktop to itself for the duration of the run.",
             IsImplemented(EngineKind.Live)),
 
         new(EngineKind.Local, "This machine",

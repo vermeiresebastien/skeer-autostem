@@ -133,14 +133,17 @@ public sealed class MainViewModel : ObservableObject
 
     public string LiveStatus { get => _liveStatus; private set => Set(ref _liveStatus, value); }
 
-    /// <summary>Engine label for the header chip, e.g. "Ableton Live 12.3.5 Suite".</summary>
+    /// <summary>
+    /// Engine label for the header chip, e.g. "Ableton Live 12.3.5 Suite" - or, when the install did
+    /// not name an edition anywhere the product can read, "Ableton Live 12.3.2 edition not detected".
+    /// </summary>
     public string LiveChip
     {
         get
         {
             if (IsSimulatedEngine) return "Simulated engine";
             if (string.IsNullOrWhiteSpace(_settings.LiveVersion)) return "Ableton Live not found";
-            return $"Ableton Live {_settings.LiveVersion} {_settings.LiveEdition}".Trim();
+            return $"Ableton Live {_settings.LiveVersion} {LiveInstall.EditionLabelFor(_settings.LiveEdition)}".Trim();
         }
     }
 
@@ -191,6 +194,18 @@ public sealed class MainViewModel : ObservableObject
 
     public string DropHint => "Drag audio files or folders here, or use Add files.";
 
+    /// <summary>
+    /// What the shipped support gate says about the Live this machine has, read from the version and
+    /// edition the locator stored. <see cref="LiveInstall.CheckSupport"/> is the single source, and
+    /// three surfaces consult it - whether Run is enabled, the sentence under it, and the refusal the
+    /// engine raises before it touches Live - so no copy of the floor can drift out of step with the
+    /// others. A simulated run is not talking to Ableton and is never gated.
+    /// </summary>
+    private SupportVerdict LiveSupport =>
+        IsSimulatedEngine
+            ? SupportVerdict.Supported
+            : LiveInstall.CheckSupport(_settings.LiveVersion, _settings.LiveEdition);
+
     /// <summary>True when the batch can actually start, using the same state the rows show.</summary>
     public bool CanRun
     {
@@ -206,8 +221,9 @@ public sealed class MainViewModel : ObservableObject
                 if (string.IsNullOrWhiteSpace(_settings.LiveExePath) || !File.Exists(_settings.LiveExePath))
                     return false;
 
-                if (!(Version.TryParse(_settings.LiveVersion, out var version) && version >= new Version(12, 1)))
-                    return false;
+                // One verdict from one source, shared with the sentence under the button and with
+                // the engine, so the button never enables for a Live the run is about to refuse.
+                if (!LiveSupport.IsSupported) return false;
             }
 
             return true;
@@ -271,8 +287,10 @@ public sealed class MainViewModel : ObservableObject
                 if (string.IsNullOrWhiteSpace(_settings.LiveExePath) || !File.Exists(_settings.LiveExePath))
                     return "Ableton Live was not found. Open Diagnostics to locate it.";
 
-                if (!(Version.TryParse(_settings.LiveVersion, out var version) && version >= new Version(12, 1)))
-                    return "Ableton Live 12.1 or newer is required.";
+                // The same verdict the engine will reach, from the same source, in the engine's own
+                // words - so the explanation under the disabled button is never a second opinion
+                // about the requirement.
+                if (!LiveSupport.IsSupported) return LiveSupport.Sentence;
             }
 
             if (ReadyCount == 0)
@@ -693,11 +711,17 @@ public sealed class MainViewModel : ObservableObject
             install = ResolveLiveInstall();
             if (install is null) return;
 
-            if (!install.SupportsStemSeparation)
+            // Version and edition, and asked here - before the conditions dialog, before the
+            // takeover, before anything of the user's is saved or closed. A Live that cannot do the
+            // job is refused while it is still sitting untouched.
+            var refusal = install.Support;
+            if (!refusal.IsSupported)
             {
+                _log.Warn($"{refusal.Reason}: run not started");
                 MessageBox.Show(
-                    $"The located Ableton Live build ({install.DisplayName}) does not have stem separation.\n\n" +
-                    "Live 12.1 or newer is required.",
+                    $"The located Ableton Live build ({install.DisplayName}) cannot be used for " +
+                    $"stem separation.\n\n{refusal.Sentence}\n\n" +
+                    "Nothing has been closed or saved: this is checked before Live is touched.",
                     "Skeer autoSTEM", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -752,7 +776,7 @@ public sealed class MainViewModel : ObservableObject
         var context = new BatchContext
         {
             Settings = _settings,
-            Install = install ?? new LiveInstall(string.Empty, "0.0", "Simulated"),
+            Install = install ?? new LiveInstall(string.Empty, "0.0", LiveInstall.SimulatedEdition),
             BaseTemplatePath = template,
             Log = _log,
             PersistQueue = () => _queue.Save(),
@@ -1024,23 +1048,15 @@ public sealed class MainViewModel : ObservableObject
         var open = LiveSessionTakeover.Detect();
         if (open.Count == 0) return true;
 
-        var list = string.Join("\n", open.Select(session => $"  - {session.Description}"));
-
-        var text =
-            "A run needs Ableton Live to itself, so Live is closed and reopened for each " +
-            $"track.\n\nThese sessions are open now and will be saved and closed:\n\n{list}\n\n" +
-            "A set that was already saved is written where it lives. A set that was never saved " +
-            $"goes to\n\n  {AppPaths.RecoveryRoot}\n\n" +
-            "under a name built from its title and the clock, so nothing of yours is replaced. A " +
-            "save that cannot be completed automatically is dropped rather than left blocking the " +
-            "run.\n\nClose these sessions and start the batch?";
+        // Composed in Core, not here: the same sentences are what a check reads. See LiveRunCopy.
+        var text = LiveRunCopy.TakeoverConfirmation(open);
 
         var answer = MessageBox.Show(text, "Skeer autoSTEM - Ableton Live is already open",
             MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
 
         _log.Info(answer == MessageBoxResult.OK
-            ? $"user confirmed takeover of {open.Count} open Live session(s)"
-            : "run not started: the open Live sessions were left alone");
+            ? LiveRunCopy.TakeoverConfirmed(open.Count)
+            : LiveRunCopy.TakeoverDeclined());
 
         return answer == MessageBoxResult.OK;
     }
@@ -1049,18 +1065,7 @@ public sealed class MainViewModel : ObservableObject
     {
         if (_settings.HasConfirmedRunConditions) return true;
 
-        var text =
-            "Before the batch starts, please leave these conditions in place:\n\n" +
-            $"  - Ableton Live: {install.DisplayName}\n" +
-            "  - Keep the desktop unlocked. Windows lock or UAC prompts stop automation safely.\n" +
-            "  - A run owns Ableton Live and closes it between tracks. Anything still open is\n" +
-            "    saved first - unsaved sets go to the recovered folder - and you are asked\n" +
-            "    before a session is closed, so save any work you care about up front.\n" +
-            "  - Do not use the mouse/keyboard over the Live window while a track is processing.\n" +
-            "  - Windows will be asked to stay awake for the duration of the run.\n" +
-            "  - A display scale factor other than 100% is handled, but the Live window must\n" +
-            "    stay on the monitor where it was launched (it is maximised there).\n\n" +
-            "Start the batch now?";
+        var text = LiveRunCopy.RunConditions(install.DisplayName);
 
         var answer = MessageBox.Show(text, "Skeer autoSTEM - overnight run conditions",
             MessageBoxButton.OKCancel, MessageBoxImage.Information);

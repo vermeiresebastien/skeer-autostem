@@ -38,6 +38,7 @@ internal static class Program
                 "enqueue" => Enqueue(args.Skip(1).ToArray()),
                 "dump-ui" => DumpUi(args.Skip(1).ToArray()),
                 "uia-invoke" => UiaInvoke(args.Skip(1).ToArray()),
+                "click-probe" => ClickProbe(args.Skip(1).ToArray()),
                 "bench" => await BenchAsync(args.Skip(1).ToArray()),
                 "-h" or "--help" or "help" => Usage(),
                 _ => Usage(),
@@ -68,6 +69,9 @@ internal static class Program
                                                       dump UI Automation tree of a window
               uia-invoke --button TEXT [--window TEXT]
                                                       press a button through UI Automation
+              click-probe --name TEXT [--window TEXT] [--mode post|send|real|invoke] [--activate] [--close]
+                                                      press one element and print the menus it owns
+                                                      before and after, to show whether it worked
             """);
         return 0;
     }
@@ -85,7 +89,13 @@ internal static class Program
         {
             Console.WriteLine($"{install.DisplayName}");
             Console.WriteLine($"    exe              : {install.ExePath}");
-            Console.WriteLine($"    stem separation  : {(install.SupportsStemSeparation ? "yes" : "no")}");
+            // The same verdict the Run button and the engine give - version AND edition - so
+            // `locate` cannot call a build usable that everything else refuses. The reason token
+            // is printed so a report can be read without guessing which half failed.
+            var support = install.Support;
+            Console.WriteLine(support.IsSupported
+                ? $"    stem separation  : yes ({support.Reason})"
+                : $"    stem separation  : no ({support.Reason}) - {support.Sentence}");
             Console.WriteLine($"    template         : {WorkingProjectBuilder.FindBaseTemplate(install) ?? "<not found>"}");
         }
 
@@ -153,7 +163,7 @@ internal static class Program
         LiveInstall install;
         if (simulate)
         {
-            install = new LiveInstall(string.Empty, "0.0", "Simulated");
+            install = new LiveInstall(string.Empty, "0.0", LiveInstall.SimulatedEdition);
         }
         else
         {
@@ -306,7 +316,7 @@ internal static class Program
         LiveInstall install;
         if (simulate)
         {
-            install = new LiveInstall(string.Empty, "0.0", "Simulated");
+            install = new LiveInstall(string.Empty, "0.0", LiveInstall.SimulatedEdition);
         }
         else
         {
@@ -478,27 +488,7 @@ internal static class Program
                 Thread.Sleep(700);
 
                 Console.WriteLine("--- menu items visible on the desktop ---");
-                foreach (var element in StemForge.Core.Live.Automation.LiveUi.Descendants(
-                             System.Windows.Automation.AutomationElement.RootElement))
-                {
-                    string type;
-                    try { type = element.Current.ControlType?.ProgrammaticName ?? "?"; }
-                    catch { continue; }
-
-                    if (type is not ("ControlType.MenuItem" or "ControlType.Menu")) continue;
-
-                    var name = StemForge.Core.Live.Automation.LiveUi.Name(element);
-                    var box = element.Current.BoundingRectangle;
-                    Console.WriteLine($"  {type.Replace("ControlType.", string.Empty),-10} '{name}' rect=({box.X:F0},{box.Y:F0},{box.Width:F0},{box.Height:F0})");
-
-                    foreach (var child in StemForge.Core.Live.Automation.LiveUi.Children(element))
-                    {
-                        var childName = StemForge.Core.Live.Automation.LiveUi.Name(child);
-                        if (string.IsNullOrWhiteSpace(childName)) continue;
-                        var childBox = child.Current.BoundingRectangle;
-                        Console.WriteLine($"      child '{childName}' rect=({childBox.X:F0},{childBox.Y:F0},{childBox.Width:F0},{childBox.Height:F0})");
-                    }
-                }
+                PrintProcessMenuItems(window.ProcessId);
 
                 foreach (var menuWindow in StemForge.Core.Live.Automation.WindowSearch.All()
                              .Where(w => w.Title.Contains("menu", StringComparison.OrdinalIgnoreCase)))
@@ -511,6 +501,130 @@ internal static class Program
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Every menu element one process currently shows. Walking the whole desktop tree is
+    /// how this probe used to hang: every element is a cross-process call, and the desktop
+    /// holds thousands of them. Menus are top-level windows, so the process's own windows
+    /// are enough.
+    /// </summary>
+    private static void PrintProcessMenuItems(int processId)
+    {
+        foreach (var window in StemForge.Core.Live.Automation.LiveProcessWindows.ForProcess(processId))
+        {
+            if (!window.Visible) continue;
+            var root = StemForge.Core.Live.Automation.LiveUi.FromHandle(window.Handle);
+            if (root is null) continue;
+
+            foreach (var element in StemForge.Core.Live.Automation.LiveUi.Descendants(root, max: 600))
+            {
+                string type;
+                try { type = element.Current.ControlType?.ProgrammaticName ?? "?"; }
+                catch { continue; }
+
+                if (type is not ("ControlType.MenuItem" or "ControlType.Menu")) continue;
+
+                var name = StemForge.Core.Live.Automation.LiveUi.Name(element);
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                var enabled = StemForge.Core.Live.Automation.LiveUi.IsEnabled(element);
+                var box = element.Current.BoundingRectangle;
+                Console.WriteLine($"  {window.Handle:X} {type.Replace("ControlType.", string.Empty),-9} '{name}' enabled={enabled} rect=({box.X:F0},{box.Y:F0},{box.Width:F0},{box.Height:F0})");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Presses one named element three different ways and reports what the desktop looked
+    /// like before and after, so a click that never moved anything is visible as such.
+    /// </summary>
+    private static int ClickProbe(string[] args)
+    {
+        var windowText = Option(args, "--window") ?? "Ableton";
+        var target = Option(args, "--name");
+        var mode = (Option(args, "--mode") ?? "post").ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            Console.Error.WriteLine("usage: autostem click-probe --name TEXT [--window TEXT] [--mode post|real|invoke] [--close]");
+            return 1;
+        }
+
+        var windows = StemForge.Core.Live.Automation.WindowSearch.FindByTitle(windowText)
+            .Where(w => StemForge.Core.Live.Automation.LiveProcessWindows.IsAlive(w.ProcessId))
+            .ToList();
+        if (windows.Count == 0) { Console.Error.WriteLine($"error: no live window matching '{windowText}'"); return 1; }
+
+        System.Windows.Automation.AutomationElement? found = null;
+        IntPtr host = IntPtr.Zero;
+        foreach (var window in windows)
+        {
+            var root = StemForge.Core.Live.Automation.LiveUi.FromHandle(window.Handle);
+            if (root is null) continue;
+            foreach (var element in StemForge.Core.Live.Automation.LiveUi.Descendants(root))
+            {
+                if (!StemForge.Core.Live.Automation.LiveUi.Name(element)
+                        .Contains(target, StringComparison.OrdinalIgnoreCase)) continue;
+                found = element;
+                var handle = element.Current.NativeWindowHandle;
+                host = handle != 0 ? new IntPtr(handle) : window.Handle;
+                break;
+            }
+            if (found is not null) break;
+        }
+
+        if (found is null) { Console.Error.WriteLine($"error: no element matching '{target}'"); return 1; }
+
+        var point = StemForge.Core.Live.Automation.LiveUi.ClickablePoint(found);
+        var box = found.Current.BoundingRectangle;
+        Console.WriteLine($"target '{StemForge.Core.Live.Automation.LiveUi.Name(found)}' " +
+                          $"{found.Current.ControlType.ProgrammaticName} enabled={StemForge.Core.Live.Automation.LiveUi.IsEnabled(found)} " +
+                          $"rect=({box.X:F0},{box.Y:F0},{box.Width:F0},{box.Height:F0}) click={point?.ToString() ?? "<none>"} host=0x{host:X}");
+
+        var pid = windows[0].ProcessId;
+
+        Console.WriteLine("--- menus before ---");
+        PrintProcessMenuItems(pid);
+
+        if (point is null) { Console.Error.WriteLine("error: element has no clickable point"); return 2; }
+
+        if (HasFlag(args, "--activate"))
+            Console.WriteLine($"Activate = {StemForge.Core.Live.Automation.WindowControl.Activate(host)}");
+
+        var done = mode switch
+        {
+            "post" or "send" => PostedInput.Click(host, point.Value.X, point.Value.Y, mode == "send"),
+            "real" => RunRealClick(host, point.Value),
+            "invoke" => StemForge.Core.Live.Automation.LiveUi.TryInvoke(found),
+            _ => false,
+        };
+        Console.WriteLine($"mode={mode} delivered={done}");
+        Thread.Sleep(800);
+
+        Console.WriteLine("--- menus after ---");
+        PrintProcessMenuItems(pid);
+
+        Console.WriteLine("--- windows of the target process after ---");
+        foreach (var window in windows)
+            foreach (var w in StemForge.Core.Live.Automation.LiveProcessWindows.ForProcess(window.ProcessId))
+                Console.WriteLine($"  {w}");
+
+        if (HasFlag(args, "--close"))
+            Console.WriteLine($"Escape posted = {PostedInput.Escape(host)}");
+
+        return done ? 0 : 2;
+    }
+
+    /// <summary>
+    /// A real click, through the same door the product uses: <c>SendInput</c> is not reachable from
+    /// here any more, and a probe that skipped the guard would report a click the product is not
+    /// allowed to make. A refusal prints its reason, because "the guard said no" is the answer this
+    /// probe exists to find out.
+    /// </summary>
+    private static bool RunRealClick(IntPtr host, System.Drawing.Point point)
+    {
+        var result = StemForge.Core.Live.Automation.GuardedInput.Click(host, point, "clicked the probed point");
+        Console.WriteLine($"real click: {result.Sentence}");
+        return result.Injected;
     }
 
     /// <summary>
@@ -532,11 +646,34 @@ internal static class Program
         _ => throw new ArgumentException($"unknown engine '{value}' (live, local, cloud)"),
     };
 
+    /// <summary>
+    /// The value after <paramref name="name"/>.
+    ///
+    /// A name with nothing after it used to read as "not given", which is how a probe run as
+    /// <c>--mode post --close</c> reported a clean result having closed nothing and taken no
+    /// screenshot of the aftermath. These probes get cited as evidence, so an argument that cannot
+    /// be honoured is an error rather than a default.
+    /// </summary>
     private static string? Option(string[] args, string name)
     {
         var index = Array.IndexOf(args, name);
-        return index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
+        if (index < 0) return null;
+
+        if (index + 1 >= args.Length || args[index + 1].StartsWith("--", StringComparison.Ordinal))
+            throw new ArgumentException(
+                index + 1 >= args.Length
+                    ? $"'{name}' needs a value, and it was the last argument"
+                    : $"'{name}' needs a value, not another switch ('{args[index + 1]}')");
+
+        return args[index + 1];
     }
+
+    /// <summary>
+    /// A switch that takes no value. Kept apart from <see cref="Option"/> on purpose: reading a
+    /// switch through the value accessor is what made a trailing one invisible, because the token
+    /// after it belongs to something else or to nothing.
+    /// </summary>
+    private static bool HasFlag(string[] args, string name) => args.Contains(name);
 
     private static Stems ParseStems(string value)
     {
