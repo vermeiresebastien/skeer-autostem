@@ -1,0 +1,17 @@
+G3 exit table on the re-pinned bytes
+run at        : 2026-11-18T09:52:29+01:00
+probe sha256  : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+harness sha256: a5e991884f508209801581928e033a27184cf9886bcc6ae2c7951ff0514d3d7c
+interpreter   : Python 3.11.9
+cwd           : /d/Projects/skeer-audio/autostem/tools/live-probe
+
+02-green-plain             want=0 got=0 MATCH
+03-help                    want=0 got=0 MATCH
+04-mutation-prompt-bind    want=3 got=3 MATCH
+05-mutation-conversions    want=4 got=4 MATCH
+06-mutation-command-blind  want=5 got=5 MATCH
+07-mutations-all           want=3 got=3 MATCH
+
+legs 02-07 above were run from the shipped folder. No file on disk was mutated:
+the harness splices each mutation into the in-memory source it compiles the mutant
+from, and says so in its own preamble.

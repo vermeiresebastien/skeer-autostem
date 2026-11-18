@@ -1,0 +1,5 @@
+=== get_script_info ===
+{"status": "success", "result": {"name": "AbletonMCP", "script_version": "1.7.1", "protocol_version": 1, "port": 9877, "capabilities": ["get_session_info", "get_track_info", "get_script_info", "get_clip_notes", "get_device_parameters", "get_session_snapshot", "set_device_parameter", "drain_passive_events", "create_midi_track", "create_audio_track", "create_clip", "create_audio_clip", "add_notes_to_clip", "load_instrument_or_effect", "get_arrangement_clips", "duplicate_session_clip_to_arrangement", "create_locator", "delete_clip", "clear_notes_from_clip"], "snapshot_schema": "ableton_mcp_snapshot_v2", "passive_listeners": true}}
+=== get_session_info ===
+{"status": "success", "result": {"tempo": 129.0, "signature_numerator": 4, "signature_denominator": 4, "track_count": 1, "return_track_count": 2, "master_track": {"name": "Master", "volume": 0.8500000238418579, "panning": 0.0}, "is_playing": false, "current_song_time": 378.11843078796204, "song_length": 816.0, "loop": false, "loop_start": 8.0, "loop_length": 16.0}}
+seam closed

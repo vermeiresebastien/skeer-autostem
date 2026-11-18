@@ -1,0 +1,21 @@
+=== autoSTEM probe instantiation gate ===
+python          : 3.11.9
+probe file      : D:\Projects\skeer-audio\autostem\tools\live-probe\AutoStemProbe\__init__.py
+probe sha256    : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+harness sha256  : 5de1852479f74b6f09f6516c9972aad82079c4429b19a915989e7ad5df9102b1
+verdict file    : C:\Users\Sebastien\AppData\Local\SkeerAutoSTEM\live-probe.json (must stay absent: ABSENT)
+
+
+--- stages ---
+PASS S0 no pre-existing verdict file                      live-probe.json absent at entry
+PASS S1 module imports under Live's stubs                 imported as AutoStemProbe
+PASS S2 module defines create_instance                    present and callable
+PASS S3 create_instance returns the surface               returns AutoStemProbe
+PASS S4 construction arms the delayed probe run           scheduled=[(40, <bound method AutoStemProbe._run_probe of <AutoStemProbe.AutoStemProbe object at 0x00000185CEF91750>>)]
+PASS S5a live_version entry uses one accessor per call    line 147: "live_version": [self._call(app, "get_major_version"), self._call(app, "get_minor_version")], }
+PASS S5b fixed call shape returns real version numbers    get_major_version->12 get_minor_version->3
+PASS S5c stale two-name shape still yields an error string old shape reports 'error: FakeApplication.get_major_version() takes 1 positional argument but 2 were given' - proves the defect was a live TypeError, not a cosmetic preference
+PASS S6 verdict file still absent at exit                 live-probe.json was not created by this gate
+
+GATE RESULT: PASS (9 of 9 stages passed)
+probe sha256 at exit : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29

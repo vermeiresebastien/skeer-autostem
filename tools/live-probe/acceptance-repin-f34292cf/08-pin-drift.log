@@ -1,0 +1,22 @@
+G3 derived-copy leg: 08-pin-drift
+run at          : 2026-11-18T09:54:19
+shipped probe   : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+shipped harness : a5e991884f508209801581928e033a27184cf9886bcc6ae2c7951ff0514d3d7c
+derived harness : a5e991884f508209801581928e033a27184cf9886bcc6ae2c7951ff0514d3d7c   <- THIS is the copy that ran, not the shipped bytes
+derived probe   : 9ba1f5730b1db5596958b700f5035f0ccc4912a249b61dded354ef29d6c108a8
+command         : py -3.11 -B D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-repin-f34292cf\_derived\08-pin-drift\probe-harness.py 
+tamper applied  : probe only: one trailing comment line appended. probe-harness.py is byte-identical to the shipped one (a5e991884f508209801581928e033a27184cf9886bcc6ae2c7951ff0514d3d7c), so this leg proves the pin without editing the gate.
+expected exit   : 2
+actual exit     : 2   MATCH
+
+=== verbatim stdout ===
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-repin-f34292cf\_derived\08-pin-drift
+  harness file    D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-repin-f34292cf\_derived\08-pin-drift\probe-harness.py
+  probe file      D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-repin-f34292cf\_derived\08-pin-drift\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    9ba1f5730b1db5596958b700f5035f0ccc4912a249b61dded354ef29d6c108a8
+VERDICT: RED [exit 2 PIN_MISMATCH] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - PIN_MISMATCH: this harness pins f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29, the bytes on disk are 9ba1f5730b1db5596958b700f5035f0ccc4912a249b61dded354ef29d6c108a8, so this proof is not about the file the owner would click
+=== verbatim stderr ===
+(empty)

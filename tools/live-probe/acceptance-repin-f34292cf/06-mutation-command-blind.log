@@ -1,0 +1,240 @@
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             D:\Projects\skeer-audio\autostem\tools\live-probe
+  harness file    D:\Projects\skeer-audio\autostem\tools\live-probe\probe-harness.py
+  probe file      D:\Projects\skeer-audio\autostem\tools\live-probe\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+  pin             MATCHES the bytes this proof is about
+  probe refuses   FORBIDDEN_CALLS(5): ['map_midi_control_to_prompt', 'remove_midi_map', 'add_auto_mappable_control', 'execute_menu_item', 'trigger_menu_item']
+  probe commands  COMMAND_NAMES: ['separate_stems', 'separate_stems_of_clip'] | every one gated here: yes
+  owner's report  C:\Users\Sebastien\AppData\Local\SkeerAutoSTEM\live-probe.json before this run: absent
+  scratch report  C:\Users\SEBAST~1\AppData\Local\Temp\autostem-probe-harness-_1sryqif\live-probe.json (removed at the end)
+  self-check      OK - recorders see calls, the guard refuses a Live-side import, sys.path is clean, every mutation anchor is unique
+
+=============== MUTATION PROBE ===============
+No file is mutated. Each mutation splices one line into AutoStemProbe._lom_seam() in the
+in-memory source the mutant is compiled from; the shipped bytes on disk stay f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29.
+
+--- control leg: the unmodified shipped source ---
+
+shape attribute     answer yes          expected yes          OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: ['_datetime', 'datetime', 'linecache', 'textwrap', 'token', 'tokenize', 'traceback'] | refused: none
+  found=['Live.Clip.Clip.can_stems_be_separated', 'Live.Conversions.can_separate_stems_in_high_quality', 'Live.Conversions.separate_stems', 'Live.Conversions.separate_stems_of_clip']  strays=['Live.Clip.Clip.can_stems_be_separated', 'Live.Conversions.can_separate_stems_in_high_quality', 'Live.Conversions.reassign_stems_source', 'Live.Conversions.separate_stems', 'Live.Conversions.separate_stems_of_clip']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: YES (stages.0_lom_seam): Live's script-facing Python exposes Live.Conversions.separate_stems, Live.Conversions.separate_stems_of_clip. A remote script can name the separation command, which is the seam the product's fork asked for; invoking it is the next question, not this one. Stray script-facing names in the same shape: Live.Conversions.reassign_stems_source.
+
+shape class-member  answer yes          expected yes          OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=['Live.Clip.Clip.can_stems_be_separated', 'Live.Conversions.Conversions.separate_stems']  strays=['Live.Clip.Clip.can_stems_be_separated', 'Live.Conversions.Conversions.can_stems_be_separated', 'Live.Conversions.Conversions.separate_stems']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: YES (stages.0_lom_seam): Live's script-facing Python exposes Live.Conversions.Conversions.separate_stems. A remote script can name the separation command, which is the seam the product's fork asked for; invoking it is the next question, not this one.
+
+shape import-only   answer yes          expected yes          OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: ['Live.Conversions', 'importlib.util', 'threading'] | refused: none
+  found=['Live.Conversions.can_separate_stems_in_high_quality', 'Live.Conversions.separate_stems']  strays=['Live.Conversions.can_separate_stems_in_high_quality', 'Live.Conversions.separate_stems']  resolved_by=['import', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: YES (stages.0_lom_seam): Live's script-facing Python exposes Live.Conversions.separate_stems. A remote script can name the separation command, which is the seam the product's fork asked for; invoking it is the next question, not this one.
+
+shape flag-only     answer partial      expected partial      OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=['Live.Conversions.can_separate_stems_in_high_quality']  strays=['Live.Conversions.can_separate_stems_in_high_quality']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: PARTIAL (stages.0_lom_seam): Live.Conversions.can_separate_stems_in_high_quality is readable from a script but no command entry point (separate_stems, separate_stems_of_clip) is, so Live can be asked whether something is separable and cannot be told to separate it.
+
+shape no-members    answer no           expected no           OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=none  strays=none  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: NO (stages.0_lom_seam, dead end 2): Live.Conversions, Live.Clip are reachable, but none of separate_stems, separate_stems_of_clip, can_separate_stems_in_high_quality, can_stems_be_separated exists on them or on their classes; the dir() dumps are in this report. The objects are there and the command is not.
+
+shape nothing       answer no           expected no           OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: ['Live.Clip', 'Live.Conversions'] | refused: ['Live.Clip', 'Live.Conversions']
+  found=none  strays=none  resolved_by=['not resolved', 'not resolved', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: NO (stages.0_lom_seam, dead end 1): Live.Conversions or Live.Clip is not reachable from a remote script at all - attribute, sys.modules, find_spec and import each came back empty, with what they said recorded in targets - and no script-facing Live member names a separation entry point. There is no LOM route to the command; UI Automation stays the only one.
+
+shape stray-only    answer no           expected no           OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=none  strays=['Live.Conversions.separate_audio_to_stems']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: NO (stages.0_lom_seam, dead end 2): Live.Conversions, Live.Clip are reachable, but none of separate_stems, separate_stems_of_clip, can_separate_stems_in_high_quality, can_stems_be_separated exists on them or on their classes; the dir() dumps are in this report. The objects are there and the command is not. Stray script-facing names in the same shape: Live.Conversions.separate_audio_to_stems.
+
+shape fatal-dir     answer inconclusive expected inconclusive OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=none  strays=none  resolved_by=[]
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: INCONCLUSIVE (stages.0_lom_seam): stage 0 raised before it could answer; see its fatal key. The fork question is still open, and the later stages say nothing about it.
+
+run 'control (unmodified)': 8 shapes, 4 distinct Live API members observed across all of them: ['Application.get_application', 'Application.get_major_version', 'Application.get_menu_info', 'Application.get_minor_version']
+VERDICT: GREEN [exit 0 GREEN] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - control (unmodified)
+
+--- mutant leg: command-blind ---
+  in memory only: replaced  COMMAND_NAMES = ["separate_stems", "separate_stems_of_clip"]
+                 with     COMMAND_NAMES = ["nonexistent_command_a", "nonexistent_command_b"]
+  why: the census picked those two names out of Ableton's own Conversions.pyc; if the probe ever stops looking for them it must not keep claiming it tested the seam
+  expected: exit 5 VERDICT_MISMATCH - the three shapes that need a command entry point drop from yes to partial
+  source length 26112 -> 26118 (delta +6 bytes); the shipped file is never rewritten
+
+shape attribute     answer partial      expected yes          MISMATCH
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=['Live.Clip.Clip.can_stems_be_separated', 'Live.Conversions.can_separate_stems_in_high_quality']  strays=['Live.Clip.Clip.can_stems_be_separated', 'Live.Conversions.can_separate_stems_in_high_quality', 'Live.Conversions.reassign_stems_source', 'Live.Conversions.separate_stems', 'Live.Conversions.separate_stems_of_clip']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: PARTIAL (stages.0_lom_seam): Live.Conversions.can_separate_stems_in_high_quality, Live.Clip.Clip.can_stems_be_separated are readable from a script but no command entry point (nonexistent_command_a, nonexistent_command_b) is, so Live can be asked whether something is separable and cannot be told to separate it. Stray script-facing names in the same shape: Live.Conversions.reassign_stems_source, Live.Conversions.separate_stems, Live.Conversions.separate_stems_of_clip.
+
+shape class-member  answer partial      expected yes          MISMATCH
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=['Live.Clip.Clip.can_stems_be_separated']  strays=['Live.Clip.Clip.can_stems_be_separated', 'Live.Conversions.Conversions.can_stems_be_separated', 'Live.Conversions.Conversions.separate_stems']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: PARTIAL (stages.0_lom_seam): Live.Clip.Clip.can_stems_be_separated is readable from a script but no command entry point (nonexistent_command_a, nonexistent_command_b) is, so Live can be asked whether something is separable and cannot be told to separate it. Stray script-facing names in the same shape: Live.Conversions.Conversions.separate_stems.
+
+shape import-only   answer partial      expected yes          MISMATCH
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: ['Live.Conversions'] | refused: none
+  found=['Live.Conversions.can_separate_stems_in_high_quality']  strays=['Live.Conversions.can_separate_stems_in_high_quality', 'Live.Conversions.separate_stems']  resolved_by=['import', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: PARTIAL (stages.0_lom_seam): Live.Conversions.can_separate_stems_in_high_quality is readable from a script but no command entry point (nonexistent_command_a, nonexistent_command_b) is, so Live can be asked whether something is separable and cannot be told to separate it. Stray script-facing names in the same shape: Live.Conversions.separate_stems.
+
+shape flag-only     answer partial      expected partial      OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=['Live.Conversions.can_separate_stems_in_high_quality']  strays=['Live.Conversions.can_separate_stems_in_high_quality']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: PARTIAL (stages.0_lom_seam): Live.Conversions.can_separate_stems_in_high_quality is readable from a script but no command entry point (nonexistent_command_a, nonexistent_command_b) is, so Live can be asked whether something is separable and cannot be told to separate it.
+
+shape no-members    answer no           expected no           OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=none  strays=none  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: NO (stages.0_lom_seam, dead end 2): Live.Conversions, Live.Clip are reachable, but none of nonexistent_command_a, nonexistent_command_b, can_separate_stems_in_high_quality, can_stems_be_separated exists on them or on their classes; the dir() dumps are in this report. The objects are there and the command is not.
+
+shape nothing       answer no           expected no           OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: ['Live.Clip', 'Live.Conversions'] | refused: ['Live.Clip', 'Live.Conversions']
+  found=none  strays=none  resolved_by=['not resolved', 'not resolved', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: NO (stages.0_lom_seam, dead end 1): Live.Conversions or Live.Clip is not reachable from a remote script at all - attribute, sys.modules, find_spec and import each came back empty, with what they said recorded in targets - and no script-facing Live member names a separation entry point. There is no LOM route to the command; UI Automation stays the only one.
+
+shape stray-only    answer no           expected no           OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=none  strays=['Live.Conversions.separate_audio_to_stems']  resolved_by=['attribute on Live', 'attribute on Live', 'attribute on Live']
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: NO (stages.0_lom_seam, dead end 2): Live.Conversions, Live.Clip are reachable, but none of nonexistent_command_a, nonexistent_command_b, can_separate_stems_in_high_quality, can_stems_be_separated exists on them or on their classes; the dir() dumps are in this report. The objects are there and the command is not. Stray script-facing names in the same shape: Live.Conversions.separate_audio_to_stems.
+
+shape fatal-dir     answer inconclusive expected inconclusive OK
+  Live API calls observed (4): Application.get_application x1, Application.get_major_version x1, Application.get_menu_info x3, Application.get_minor_version x1
+  forbidden=none  undocumented=none  outside the allowlist: none
+  called as     Application.get_application(no arguments) x1
+  called as     Application.get_major_version(no arguments) x1
+  called as     Application.get_menu_info(('Create', 'Separate Stems in Place')|('Create', 'Separate Stems to New Audio Tracks')|('Edit', 'Duplicate')) x3
+  called as     Application.get_minor_version(no arguments) x1
+  imports the guard saw: none | refused: none
+  found=none  strays=none  resolved_by=[]
+  policy.read_only=True  stage4.attempted=False  report.fatal=False  probe log lines=3
+  probe verdict: INCONCLUSIVE (stages.0_lom_seam): stage 0 raised before it could answer; see its fatal key. The fork question is still open, and the later stages say nothing about it.
+
+run 'mutation command-blind': 8 shapes, 4 distinct Live API members observed across all of them: ['Application.get_application', 'Application.get_major_version', 'Application.get_menu_info', 'Application.get_minor_version']
+VERDICT: RED [exit 5 VERDICT_MISMATCH] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: [('attribute', 'partial', 'yes'), ('class-member', 'partial', 'yes'), ('import-only', 'partial', 'yes')] - mutation command-blind
+FALSIFIER: PASS - mutation command-blind reddened the answer gate with exit 5 VERDICT_MISMATCH, flipping exactly ['attribute', 'class-member', 'import-only'] to ['partial', 'partial', 'partial'] and leaving the other 5 shapes as documented.
+CONTROL LEG GREEN (exit 0): the shipped bytes were clean in the same process, same interpreter, same stubs, so each mutant's red above is the patch.
+
+=============== FINDINGS (evidence limits; no exit-code effect) ==============
+  - Live.Application.get_application IS called and is not one of the three documented readers: the probe cannot reach an Application object without it. It takes no arguments, returns the handle and reads nothing from the set, so it is permitted with that reason. The ad-hoc harness this file replaces never instrumented it, so its "three names" could not have been complete; the honest allowlist for the shipped bytes is four.
+  - Live.Application.get_menu_item_info is stage 2's fallback read (D:\Projects\skeer-audio\autostem\tools\live-probe\AutoStemProbe\__init__.py:196). The loop breaks once get_menu_info answers, so it never fires on a Live that has get_menu_info, and it is deliberately NOT in the allowlist: if a build lacks get_menu_info, this harness reddens with exit 4 by design and that name has to be added with the same read-only reason.
+  - stub signatures are not Live's: the recorders accept any arguments, which is how the wrong-arity read above was visible as a call rather than as a TypeError. A real Live answers for itself; nothing here proves what Live's builtins accept, only what this script asks for.
+
+=============== POST-RUN SAFETY ===============
+  probe sha256    after the run: f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29 (unchanged: True)
+  probe folder    entries before/after: ['__init__.py', '__pycache__'] (unchanged: True)
+  owner's report  after the run: absent (untouched: True)
+  sys.path        still clean: yes
+  disk-backed Live-side modules loaded: none
+  imports refused by the guard during the run: none
+  nothing was written, imported or reported outside the scratch folder

@@ -1,0 +1,8 @@
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             C:\Users\Sebastien\AppData\Local\Temp\pm-accept
+  harness file    C:\Users\Sebastien\AppData\Local\Temp\pm-accept\probe-harness.py
+  probe file      C:\Users\Sebastien\AppData\Local\Temp\pm-accept\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    daac96cffc0551e5694758b7ebceac93ad22b827bb4ae85822e4f211afea8e9f
+VERDICT: RED [exit 2 PIN_MISMATCH] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - PIN_MISMATCH: this harness pins b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5, the bytes on disk are daac96cffc0551e5694758b7ebceac93ad22b827bb4ae85822e4f211afea8e9f, so this proof is not about the file the owner would click

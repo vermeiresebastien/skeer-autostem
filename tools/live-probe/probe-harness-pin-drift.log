@@ -1,0 +1,43 @@
+PROVENANCE (this block added by the Full-stack Engineer; everything under the marker is the harness stdout/stderr verbatim)
+command    : py -3.11 -B %TEMP%\pin-drift\probe-harness.py
+cwd        : D:\Projects\skeer-audio\autostem\tools\live-probe
+interpreter: py -3.11 -> CPython 3.11.9 (-B so no __pycache__ is written beside the harness)
+harness    : probe-harness.py sha256 5de1852479f74b6f09f6516c9972aad82079c4429b19a915989e7ad5df9102b1
+probe      : AutoStemProbe/__init__.py sha256 b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5
+separator  : LF only; the harness reconfigures stdout to LF so this log matches the folder
+exit code  : 2
+note       : 2 (PIN_MISMATCH) is the EXPECTED exit. The drifted file is a scratch copy at %TEMP%\pin-drift\AutoStemProbe\__init__.py (sha256 1c571b2d4776b15df850fece35cbd3abf752a836e923dea43518a07678718fe4); the shipped file under tools\live-probe was never written by this leg and still hashes to b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5
+HARNESS OUTPUT VERBATIM BELOW
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             D:\Projects\skeer-audio\autostem\tools\live-probe
+  harness file    C:\Users\SEBAST~1\AppData\Local\Temp\pin-drift\probe-harness.py
+  probe file      C:\Users\SEBAST~1\AppData\Local\Temp\pin-drift\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    1c571b2d4776b15df850fece35cbd3abf752a836e923dea43518a07678718fe4
+VERDICT: RED [exit 2 PIN_MISMATCH] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - PIN_MISMATCH: this harness pins b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5, the bytes on disk are 1c571b2d4776b15df850fece35cbd3abf752a836e923dea43518a07678718fe4, so this proof is not about the file the owner would click
+
+=============== SECTION 2 - RE-RUN 16:41 FROM A COPY OF THE SHIPPED HARNESS ===============
+why        : SECTION 1 recorded the right verdict with the wrong provenance - it was launched from a
+             scratch copy of probe-harness.py whose bytes were never hashed - and probe-harness.py prints no hash
+             of itself, so SECTION 1 carried no number tying it to the harness the other logs describe.
+             SECTION 1 is therefore declared SUPERSEDED for provenance, kept and not deleted. This leg repeats the same
+             induction and names every hash involved.
+harness    : byte-identical copy of tools\live-probe\probe-harness.py, sha256 5de1852479f74b6f09f6516c9972aad82079c4429b19a915989e7ad5df9102b1
+drift probe: the shipped probe b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5 with one comment line appended
+             ("# drift for the pin gate; added by the harness proof") = a927a63ee39b03e099dbaedca17afd63256a38a15ed7cd238a4e8d530d654024
+command    : py -3.11 -B %TEMP%\task13-replay\pin-drift-2\probe-harness.py   (cwd = that folder)
+exit code  : 2 (expected 2, and the same code SECTION 1 recorded)
+scratch    : %TEMP%\task13-replay\ was removed after the run; nothing under tools\live-probe\ was
+             written by this leg, and the shipped probe is still b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5.
+OUTPUT OF THE SECTION 2 LEG FOLLOWS (verbatim)
+
+### SECTION 2 / LEG - drifted probe copy against the shipped pin
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             C:\Users\SEBAST~1\AppData\Local\Temp\task13-replay\pin-drift-2
+  harness file    C:\Users\SEBAST~1\AppData\Local\Temp\task13-replay\pin-drift-2\probe-harness.py
+  probe file      C:\Users\SEBAST~1\AppData\Local\Temp\task13-replay\pin-drift-2\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    a927a63ee39b03e099dbaedca17afd63256a38a15ed7cd238a4e8d530d654024
+VERDICT: RED [exit 2 PIN_MISMATCH] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - PIN_MISMATCH: this harness pins b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5, the bytes on disk are a927a63ee39b03e099dbaedca17afd63256a38a15ed7cd238a4e8d530d654024, so this proof is not about the file the owner would click

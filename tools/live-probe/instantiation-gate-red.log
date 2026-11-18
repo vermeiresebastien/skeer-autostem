@@ -1,0 +1,15 @@
+=== autoSTEM probe instantiation gate ===
+python          : 3.11.9
+probe file      : D:\Projects\skeer-audio\autostem\tools\live-probe\AutoStemProbe\__init__.py
+probe sha256    : b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5
+harness sha256  : 5de1852479f74b6f09f6516c9972aad82079c4429b19a915989e7ad5df9102b1
+verdict file    : C:\Users\Sebastien\AppData\Local\SkeerAutoSTEM\live-probe.json (must stay absent: ABSENT)
+
+
+--- stages ---
+PASS S0 no pre-existing verdict file                      live-probe.json absent at entry
+PASS S1 module imports under Live's stubs                 imported as AutoStemProbe
+FAIL S2 module defines create_instance                    ABSENT - Live cannot instantiate this surface, so it will not appear in the Remote Control Surfaces list
+
+GATE RESULT: FAIL (2 of 3 stages passed)
+probe sha256 at exit : b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5

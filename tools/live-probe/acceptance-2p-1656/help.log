@@ -1,0 +1,89 @@
+# probe-harness.py - the permanent, self-proving offline harness for
+# tools/live-probe/AutoStemProbe/__init__.py (the Live Object Model probe the owner activates with
+# one pick in Preferences).
+#
+# =============================================================================
+# THE CONTRACT THIS HARNESS PROTECTS
+# =============================================================================
+# Stage 0 of the probe - AutoStemProbe._lom_seam() - is the stage that decides the product's fork,
+# and it must be READ-ONLY. Concretely:
+#
+#   * It may resolve and introspect Live.Conversions, Live.Clip and Live.MidiMap with hasattr,
+#     dir(), repr(), __doc__, sys.modules, importlib.util.find_spec and an import. The import is the
+#     only state it can touch inside Live, and it is interpreter state, not the owner's set.
+#   * It must never call a mapping or menu executor: map_midi_control_to_prompt, remove_midi_map,
+#     add_auto_mappable_control, send_midi_cc, map_midi_cc, execute_menu_item, trigger_menu_item.
+#   * It must never call the separation command itself (separate_stems, separate_stems_of_clip) or
+#     anything else that could change the set, a device, a mapping or the transport.
+#   * The only Live API members it may call at all are the documented readers
+#       Live.Application.get_major_version
+#       Live.Application.get_minor_version
+#       Live.Application.get_menu_info
+#     plus the one handle getter it cannot do without, Live.Application.get_application(), which
+#     takes no arguments and reads nothing from the set. That fourth name is called out in
+#     HARNESS.md: the ad-hoc harness this one replaces left it un-instrumented and therefore
+#     understated the observed set as three names. It is listed here as permitted-with-reason, not
+#     dropped.
+#
+# All of it is enforced, not asserted: every stub member records its own invocation, and the harness
+# exits nonzero if the recorded set contains a forbidden name or any name beyond the four permitted
+# above. An always-exit-0 harness would be a guard, not a falsifier.
+#
+# =============================================================================
+# THE BYTES THIS PROOF IS ABOUT
+# =============================================================================
+# Pinned sha256 of AutoStemProbe/__init__.py as validated by this harness:
+#   b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5
+# The hash is recomputed from disk on every run and a mismatch is exit 2, because a green run over
+# different bytes proves nothing about the file the owner is about to click against. When the probe
+# is deliberately changed, update the pin in the same change - that red is the point of this file.
+#
+# =============================================================================
+# EXIT CODES (owned by this file; read the code, not the prose)
+# =============================================================================
+#   0  GREEN - every shape answered as documented and the observed call set never left the four
+#      permitted names.
+#   2  PIN_MISMATCH - the probe's bytes are not the bytes this proof is about.
+#   3  FORBIDDEN_CALL - a mapping/menu executor or the separation command was called.
+#   4  UNDOCUMENTED_CALL - some other Live API member was called; the allowlist is the contract.
+#   5  VERDICT_MISMATCH - a shape printed an answer other than the one the census documents.
+#   6  HARNESS_INVALID - a stub-safety or self-check failed: the recorders cannot see calls, an
+#      import tried to reach a real Live install, the probe's folder or the owner's real report
+#      file moved, or a mutation anchor is not present exactly once.
+#   7  MUTATION_NOT_CAUGHT - falsifier failure: the deliberately broken copy stayed green, so no
+#      green from this harness would mean anything.
+#
+# In --mutation runs the exit code is the gate's own verdict on the mutant: 3, 4 or 5 there is the
+# EXPECTED result and means the falsifier caught the mutation; 0 or 7 means it did not.
+#
+# =============================================================================
+# WHY THIS CANNOT REACH LIVE
+# =============================================================================
+#   1. Nothing here is a Live API call: sys.modules is pre-populated with synthetic Live,
+#      Live.Application, Live.MidiMap, Live.Song, Live.Conversions, Live.Clip and
+#      _Framework.ControlSurface, all built by this file, and the probe source is loaded with
+#      compile() + exec into a hand-made module - no loader, no import of the probe, so no
+#      __pycache__ is written next to it either.
+#   2. sys.path is scrubbed of Ableton-shaped entries before anything runs and checked again after.
+#   3. A guard finder sits at sys.meta_path[0] and refuses (ImportError, recorded) any import whose
+#      root is Live, _Framework, ableton, _Generic, Push or _TaskBar, except the one name a shape
+#      explicitly declares as synthetic-served. So even a probe bug that reaches for an unstubbed
+#      Live module cannot touch a disk path.
+#   4. The probe's report is redirected to a scratch file; the harness records mtime/size/sha256 of
+#      the owner's real %LOCALAPPDATA%\SkeerAutoSTEM\live-probe.json before and after and fails with
+#      exit 6 if it moved.
+#   5. No socket, no subprocess, no process enumeration, no window, no registry, and no write
+#      anywhere except the scratch folder, which is removed again.
+#
+# Run (Live 12.3.2 ships CPython 3.11, so 3.11 is the interpreter this is validated on):
+#   py -3.11 -B probe-harness.py                        # expect exit 0
+#   py -3.11 -B probe-harness.py --mutation prompt-bind # expect exit 3, and the log says so
+#   py -3.11 -B probe-harness.py --mutation conversions-flag   # expect exit 4
+#   py -3.11 -B probe-harness.py --mutation command-blind      # expect exit 5
+#   py -3.11 -B probe-harness.py --mutations                    # all three legs, expect exit 3
+# Every --mutation run also executes the eight shapes on the unmodified shipped source first, as a
+# control leg that must stay green, so a mutant's red is attributable to the patch and not to the
+# mode. The recorded logs sit beside this file; HARNESS.md maps each log to its command.
+
+usage: py -3.11 -B probe-harness.py [--mutation NAME | --mutations | --help]
+mutations available: ['prompt-bind', 'conversions-flag', 'command-blind']

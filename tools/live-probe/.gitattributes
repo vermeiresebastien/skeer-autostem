@@ -1,0 +1,13 @@
+# Byte-exactness is the product here, not a style preference.
+#
+# probe-harness.py recomputes the sha256 of AutoStemProbe/__init__.py from disk on every run and
+# exits 2 on a mismatch, and every recorded hash in this folder (README, HARNESS, the acceptance
+# sets) was measured against LF-only bytes. The repo is cloned on Windows with core.autocrlf=true
+# and has no root .gitattributes, so without this file a fresh checkout rewrites these LF blobs to
+# CRLF: AutoStemProbe/__init__.py grows from 26,112 to 26,662 bytes, its digest stops matching the
+# pin, and the harness that is supposed to prove the probe safe to run redders on a clean clone.
+#
+# Scoped to this directory on purpose - a root .gitattributes would touch the 23 tracked files
+# other lanes are editing, and renormalizing a shared tree is not this commit's business.
+* text=auto eol=lf
+*.pyc binary

@@ -1,0 +1,15 @@
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             C:\Users\Sebastien\AppData\Local\Temp\harness-accept-1656\selfcheck-B
+  harness file    C:\Users\Sebastien\AppData\Local\Temp\harness-accept-1656\selfcheck-B\probe-harness.py
+  probe file      C:\Users\Sebastien\AppData\Local\Temp\harness-accept-1656\selfcheck-B\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5
+  pin             MATCHES the bytes this proof is about
+  probe refuses   FORBIDDEN_CALLS(5): ['map_midi_control_to_prompt', 'remove_midi_map', 'add_auto_mappable_control', 'execute_menu_item', 'trigger_menu_item']
+  probe commands  COMMAND_NAMES: ['separate_stems', 'separate_stems_of_clip'] | every one gated here: NO - ungated: ['map_midi_control_to_prompt']
+  owner's report  C:\Users\Sebastien\AppData\Local\SkeerAutoSTEM\live-probe.json before this run: absent
+  scratch report  C:\Users\SEBAST~1\AppData\Local\Temp\autostem-probe-harness-q2d_y2eu\live-probe.json (removed at the end)
+  self-check      FAILED
+  SELF-CHECK FAILED: the classifier does not grade map_midi_control_to_prompt forbidden
+VERDICT: RED [exit 6 HARNESS_INVALID] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - harness self-check

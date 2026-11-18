@@ -1,0 +1,7 @@
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             C:\Users\Sebastien\AppData\Local\Temp\harness-accept-1656\selfcheck-A
+  harness file    C:\Users\Sebastien\AppData\Local\Temp\harness-accept-1656\selfcheck-A\probe-harness.py
+  probe file      C:\Users\Sebastien\AppData\Local\Temp\harness-accept-1656\selfcheck-A\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+VERDICT: RED [exit 6 HARNESS_INVALID] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - probe source not found

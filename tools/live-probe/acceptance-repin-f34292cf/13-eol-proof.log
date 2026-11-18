@@ -1,0 +1,27 @@
+EOL proof for this commit - run 2026-11-18, after adding tools/live-probe/.gitattributes
+
+Repo state that made this necessary: core.autocrlf=true, no root .gitattributes, every file
+in this folder previously untracked. Under that config a fresh checkout smudges LF blobs
+to CRLF, which changes byte length and therefore breaks the sha256 pin that the harness
+enforces on every run and that this folder's prose publishes.
+
+git ls-files --eol (i/ = index blob, w/ = worktree):
+
+Decisive test - git checkout-index of the staged blobs into an empty folder, then hash what
+a clone would actually put on disk:
+  AutoStemProbe/__init__.py   26112 B  f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29  CR=0  == published
+  probe-harness.py            49264 B  a5e991884f508209801581928e033a27184cf9886bcc6ae2c7951ff0514d3d7c  CR=0  == published
+
+Without .gitattributes the same extraction yields 26662 B / 49264+1020 CRs and the harness
+exits 2 PIN_MISMATCH on a clean clone.
+
+Five files carry CR bytes in the working tree (mixed endings from bash+python capture):
+  acceptance-2p-1656/seam-read.out(5) acceptance-repin-f34292cf/12-g0-snapshot-verify.log(7)
+  instantiation-gate-green.log(21) instantiation-gate-red-final.log(15) instantiation-gate-red.log(15)
+Their staged blobs are LF-normalised by text=auto, so the committed record is deterministic
+even though this desk's copies stay mixed until a re-checkout. None of the five publishes
+its own hash, so normalising them invalidates nothing.
+
+Staging excluded AutoStemProbe/__pycache__/__init__.cpython-312.pyc: a compiled artifact
+written 2026-11-15 20:25 by a Python 3.12 interpreter, over bytes two generations older than
+the current pin. Not evidence, and not the pinned artifact either.

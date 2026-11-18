@@ -1,0 +1,22 @@
+RE-PIN WITNESS leg: pin-drift BEFORE re-pin (G2 pre-flight)
+run at: 2026-11-18T09:49:37+01:00
+probe sha256 on disk: f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+harness sha256      : 5de1852479f74b6f09f6516c9972aad82079c4429b19a915989e7ad5df9102b1
+command: py -3.11 -B probe-harness.py
+PINNED_SHA256 still: b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5
+=== verbatim stdout ===
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             D:\Projects\skeer-audio\autostem\tools\live-probe
+  harness file    D:\Projects\skeer-audio\autostem\tools\live-probe\probe-harness.py
+  probe file      D:\Projects\skeer-audio\autostem\tools\live-probe\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+VERDICT: RED [exit 2 PIN_MISMATCH] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - PIN_MISMATCH: this harness pins b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5, the bytes on disk are f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29, so this proof is not about the file the owner would click
+=== exit code ===
+0
+NOTE: that 0 is the exit status of the shell echo, NOT of the harness.
+The harness verdict above is RED [exit 2 PIN_MISMATCH]. The leg is recorded
+for that line; the number printed here is a defect of the capture command
+(echo $? after a redirected command reports the echo), and is why legs
+02-11 take their codes from subprocess.run instead.
