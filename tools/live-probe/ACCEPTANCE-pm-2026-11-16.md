@@ -81,13 +81,14 @@ the random temp name" statement is now corroborated by a second machine-state an
   scratch copies, one line each, and all three derived-copy hashes reproduced the recorded values
   exactly (`2e8c969c…`, `200aaa45…`; leg A's copy is the unmodified harness `5de18524…`, reddened by
   the missing probe source instead). See §7 for the logs, now held in this folder.
-* **The harness still does not attest its own bytes.** It prints the *probe's* sha256 and nothing
-  about itself, so no log — mine included — can prove from inside which harness produced it. This
-  record is the external substitute for all eight logs, and the real closure is the two-line fix
-  already deferred — **re-pointed 2026-11-17 from "the post-click batch", which is now an
-  unreachable trigger, to batch G4, the batch that runs after the G3 table is re-accepted (§9)**:
-  moving those bytes now would invalidate the green run
-  the click decision rests on.
+* **~~The harness still does not attest its own bytes~~ — closed 2026-11-19.** It printed the *probe's*
+  sha256 and nothing about itself, so no log — mine included — could prove from inside which harness
+  produced it; this record was the external substitute for all eight logs. The closure is G4: harness
+  `1d59b88f…` prints `harness sha256` in its own preamble, and the first table produced by
+  self-attesting bytes is `acceptance-g4-selfhash/`. The history of how this was deferred — **re-pointed
+  2026-11-17 from "the post-click batch", which is now an
+  unreachable trigger, to batch G4, the batch that runs after the G3 table is re-accepted (§9)** —
+  stands as written.
 * **Nothing here touches Live.** No socket was opened, no window was touched, no process was
   started or stopped, no `.pyc` was written beside anything, and
   `%LOCALAPPDATA%\SkeerAutoSTEM\` still contains no `live-probe.json`. **The enumeration that
@@ -317,10 +318,13 @@ G0 manifest is what guarantees it. The satisfiable form is two separate checks, 
 probe + the new gate/G3 logs) = **0**. One "old gone / new everywhere" assertion fails forever and
 then gets quietly relaxed.
 
-**G4 now owns the self-attestation fix.** Its stated trigger is unreachable: the deferral was written
-as "after the click", and after this batch the click cannot precede the fix — a doc that defers to an
-event that now happens *later* than the thing it gates is a permanent freeze wearing a date. Successor
-batch: **G4, after the G3 table is re-accepted.** §4 of this file has been re-pointed accordingly.
+**G4 now owns the self-attestation fix — and has executed it, 2026-11-19.** Its stated trigger was
+unreachable: the deferral was written as "after the click", and after this batch the click could not
+precede the fix — a doc that defers to an event that happens *later* than the thing it gates is a
+permanent freeze wearing a date. Successor batch: **G4, after the G3 table is re-accepted.** §4 of
+this file was re-pointed accordingly, and G4 has since landed: harness `1d59b88f…` self-attests, and
+`acceptance-g4-selfhash/` holds the ten-leg table re-run on those bytes (superseding the G3 table for
+the current bytes).
 
 **Line-citation correction, and the blame is shared in the right order.** The deferral text is **not**
 at `README.md:901-904`. Measured: the self-attestation bullet begins at `README.md:956`, the

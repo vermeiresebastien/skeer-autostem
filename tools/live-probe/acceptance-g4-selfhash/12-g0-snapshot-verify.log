@@ -1,0 +1,7 @@
+manifest entries      : 42
+verified ok           : 42
+missing               : 0 []
+mismatched            : 0 []
+files under live-probe: 43
+manifest sha256       : 4292f6a16eb741d4d6011b56cc1a0642aa03c22b25ff88a1b78c28663d08ccf3
+pre-fix probe sha256  : b995063b665eb170442007c5f039baa2d7d44e12c9184e86b37d8879447220f5

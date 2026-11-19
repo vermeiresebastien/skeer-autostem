@@ -1,0 +1,22 @@
+G4 derived-copy leg: 09-selfcheck-A
+run at          : 2026-11-19T16:06:46
+shipped probe   : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+shipped harness : 1d59b88fd8cf80b571ed35d1e12c3b14126b0c313c9c70578d284a6a34fd5bb9
+derived harness : 1d59b88fd8cf80b571ed35d1e12c3b14126b0c313c9c70578d284a6a34fd5bb9   <- THIS is the copy that ran, not the shipped bytes
+derived probe   : ABSENT
+command         : py -3.11 -B D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\09-selfcheck-A\probe-harness.py 
+tamper applied  : AutoStemProbe/__init__.py removed from the copy; harness unedited
+expected exit   : 6
+actual exit     : 6   MATCH
+
+=== verbatim stdout ===
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\09-selfcheck-A
+  harness file    D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\09-selfcheck-A\probe-harness.py
+  harness sha256  1d59b88fd8cf80b571ed35d1e12c3b14126b0c313c9c70578d284a6a34fd5bb9
+  probe file      D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\09-selfcheck-A\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+VERDICT: RED [exit 6 HARNESS_INVALID] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - probe source not found
+=== verbatim stderr ===
+(empty)

@@ -1,0 +1,20 @@
+G4 leg 13: EOL proof - the staged bytes survive checkout byte-exactly
+run at        : 2026-11-19T16:11:12
+method        : git checkout-index --prefix=<empty dir>/ tools/live-probe/probe-harness.py
+                tools/live-probe/AutoStemProbe/__init__.py   (reads the staged index,
+                i.e. the blobs a fresh clone will receive, after the * text=auto eol=lf
+                smudge in tools/live-probe/.gitattributes), then sha256 + byte count +
+                CR count on the extracted files, compared to the shipped worktree.
+
+extracted harness : 1d59b88fd8cf80b571ed35d1e12c3b14126b0c313c9c70578d284a6a34fd5bb9  49337 B  CR=0
+extracted probe   : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29  26112 B  CR=0
+extracted harness == 1d59b88fd8cf80b571ed35d1e12c3b14126b0c313c9c70578d284a6a34fd5bb9 : True
+extracted probe   == f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29 : True
+worktree harness sha == extracted : True
+worktree probe   sha == extracted : True
+
+reading: a fresh clone of this commit smudges both files to exactly the bytes the
+ten-leg table ran against; the self-hash the harness prints is therefore clone-stable.
+This is the G4 equivalent of acceptance-repin-f34292cf/13-eol-proof.log, which proved
+the same property for probe f34292cf after the G3 batch; here the harness bytes are
+the ones that changed (a5e99188 -> 1d59b88f), so both files are re-proved.

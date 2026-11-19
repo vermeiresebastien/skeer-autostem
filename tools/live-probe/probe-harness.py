@@ -814,6 +814,7 @@ def main(argv):
     say("probe-harness.py - offline stub harness for AutoStemProbe/__init__.py")
     say("  cwd             %s" % os.getcwd())
     say("  harness file    %s" % os.path.abspath(__file__))
+    say("  harness sha256  %s" % sha256_file(os.path.abspath(__file__)))
     say("  probe file      %s" % PROBE_PATH)
     say("  interpreter     %s (%s)" % (sys.version.split()[0], sys.executable))
     if sys.version_info[:2] != (3, 11):

@@ -1023,8 +1023,10 @@ about the bytes named in §13's hash list below, not about the filename.
   **Two things do not move with this.** (1) Legs B and C still *cannot* be produced from the shipped
   bytes — the neutered allowlist and the deliberately wrong expectation are the whole point — so exit
   `6` and exit `7` here describe **derived** bytes, and that is precisely why the copies are hashed and
-  why the sentence above theirs stays. (2) The harness still does not attest its own bytes; the next
-  bullet stands as written. Two reading cautions, both mine, from reading those files rather than from
+  why the sentence above theirs stays. (2) ~~The harness still does not attest its own bytes~~ —
+  **superseded 2026-11-19**: harness `1d59b88f…` prints its own sha256, and
+  `acceptance-g4-selfhash/` is the first table produced by self-attesting bytes; the next
+  bullet's history stands as written. Two reading cautions, both mine, from reading those files rather than from
   the report's prose: `acceptance-2p-1656/help.log` is **byte-identical** to `pm-acceptance-help.log`
   (both `3a945d51687bc51c32a00a1254bcac1e18737941a674305d3de66676ec7b4bf3`), which is what a
   deterministic `--help` capture looks like — that output is the harness's own static header, with no
@@ -1063,7 +1065,9 @@ about the bytes named in §13's hash list below, not about the filename.
   the harness's own sha256 in its preamble — is no longer deferred;** it is the only mechanism that lets
   a future log prove which harness wrote it, and `acceptance-repin-f34292cf/INDEX.md` §4 shows the gap
   is real: the ten-leg table in that folder is attested by hand-added headers around harness output,
-  exactly as before.
+  exactly as before. **Landed 2026-11-19** as harness `1d59b88f…`; the ten-leg table re-run on
+  self-attesting bytes is `acceptance-g4-selfhash/`, which supersedes the G3 table for the current
+  bytes.
 - **The second-party set, and what I measured myself.** `ACCEPTANCE-pm-2026-11-16.md` records exit codes
   measured from the process rather than from a pipe: **0** green, **3** prompt-bind, **4**
   conversions-flag, **5** command-blind, **3** `--mutations`, **0** `--help`, **2** pin-drift. Its seven
@@ -1178,9 +1182,10 @@ about the bytes named in §13's hash list below, not about the filename.
 - **What remains stale on purpose.** The `get_minor_version` arity defect at `AutoStemProbe/__init__.py:143`
   is **not** fixed and is not this lane's to fix: it costs nothing (stage 0 does not read
   `environment.live_version`, §5), and editing the probe would break the pin that every one of these
-  fourteen logs (twenty-four as of 2026-11-17) and every document around them is tied to. Likewise the
-  harness's missing self-hash, above. Both are
-  queued for the post-click batch, and the reason is the same in each case — **the click decision rests on
+  fourteen logs (twenty-four as of 2026-11-17) and every document around them is tied to. The harness's
+  missing self-hash is **no longer one of these** — it landed 2026-11-19 as harness `1d59b88f…`
+  (`acceptance-g4-selfhash/`); the arity defect alone remains
+  queued for the post-click batch, and the reason is the same — **the click decision rests on
   bytes that are already recorded, and re-pinning before it would leave the decision citing evidence that
   no longer exists.** §5's "do not read `environment.live_version` as a finding" is what a reader needs
   until then.

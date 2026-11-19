@@ -1,0 +1,16 @@
+legs:
+  want=2 got=2 MATCH
+  want=6 got=6 MATCH
+  want=6 got=6 MATCH
+  want=7 got=7 MATCH
+derived .py copies deleted: True
+re-check folder gone: True
+  was: D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\08-pin-drift\probe-harness.py
+  was: D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\08-pin-drift\AutoStemProbe\__init__.py
+  was: D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\09-selfcheck-A\probe-harness.py
+  was: D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\10-selfcheck-B\probe-harness.py
+  was: D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\10-selfcheck-B\AutoStemProbe\__init__.py
+  was: D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\11-selfcheck-C\probe-harness.py
+  was: D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\11-selfcheck-C\AutoStemProbe\__init__.py
+shipped harness is the self-attesting revision: True
+shipped probe unchanged: True

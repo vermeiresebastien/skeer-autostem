@@ -1,0 +1,30 @@
+G4 derived-copy leg: 10-selfcheck-B
+run at          : 2026-11-19T16:06:46
+shipped probe   : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+shipped harness : 1d59b88fd8cf80b571ed35d1e12c3b14126b0c313c9c70578d284a6a34fd5bb9
+derived harness : 33ee010067e86bde1ef4b2b4559b8f5a85f33e395975367ab679c867e12e165d   <- THIS is the copy that ran, not the shipped bytes
+derived probe   : f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+command         : py -3.11 -B D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\10-selfcheck-B\probe-harness.py 
+tamper applied  : FORBIDDEN_METHODS emptied in the copy's harness
+expected exit   : 6
+actual exit     : 6   MATCH
+
+=== verbatim stdout ===
+probe-harness.py - offline stub harness for AutoStemProbe/__init__.py
+  cwd             D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\10-selfcheck-B
+  harness file    D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\10-selfcheck-B\probe-harness.py
+  harness sha256  33ee010067e86bde1ef4b2b4559b8f5a85f33e395975367ab679c867e12e165d
+  probe file      D:\Projects\skeer-audio\autostem\tools\live-probe\acceptance-g4-selfhash\_derived\10-selfcheck-B\AutoStemProbe\__init__.py
+  interpreter     3.11.9 (C:\Users\Sebastien\AppData\Local\Python\pythoncore-3.11-64\python.exe)
+  sys.path        6 entries; Ableton-shaped entries removed before anything imported: none needed
+  probe sha256    f34292cf12df8d27a0bc235da5870837abe143509a9a267f2b03950542299c29
+  pin             MATCHES the bytes this proof is about
+  probe refuses   FORBIDDEN_CALLS(5): ['map_midi_control_to_prompt', 'remove_midi_map', 'add_auto_mappable_control', 'execute_menu_item', 'trigger_menu_item']
+  probe commands  COMMAND_NAMES: ['separate_stems', 'separate_stems_of_clip'] | every one gated here: NO - ungated: ['add_auto_mappable_control', 'execute_menu_item', 'map_midi_control_to_prompt', 'remove_midi_map', 'separate_stems', 'separate_stems_of_clip', 'trigger_menu_item']
+  owner's report  C:\Users\Sebastien\AppData\Local\SkeerAutoSTEM\live-probe.json before this run: absent
+  scratch report  C:\Users\SEBAST~1\AppData\Local\Temp\autostem-probe-harness-s3rx2pc6\live-probe.json (removed at the end)
+  self-check      FAILED
+  SELF-CHECK FAILED: the classifier does not grade map_midi_control_to_prompt forbidden
+VERDICT: RED [exit 6 HARNESS_INVALID] - 8 shapes, calls outside the four permitted: none; forbidden: none; answer mismatches: none - harness self-check
+=== verbatim stderr ===
+(empty)

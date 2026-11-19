@@ -191,6 +191,7 @@ number rather than by an mtime argument.
 | `probe-harness-mutations-all.log` | `… --mutations` | 3 (expected) | `5de18524…` | `b72244d86f4ff9e5a603ed27ba9e679f9062f2198e62fd57117b9994feacf965` | run from the shipped file after its last edit |
 | `probe-harness-pin-drift.log` | `py -3.11 -B %TEMP%\task13-replay\pin-drift-2\probe-harness.py` | 2 (expected) | `5de18524…` | `4424d0ffbb1b8754de6f3e5f197efd7e65fb19846f86bff9ea8f5aabfabb46b4` | SECTION 2 re-run from a hashed copy |
 | `probe-harness-selfcheck.log` | three legs under `%TEMP%\task13-replay\`, commands quoted inside | 6, 6, 7 (expected) | `5de18524…` | `3e7d8b2debb39dd05d970f4d6bc2380b26dd78df6eb33536ae924dedcddb6ac2` | SECTION 2 re-run, each copy hashed |
+| `probe-harness-selfhash-table-2026-11-19.log` | `py -3.11 -B probe-harness.py --mutations` | 3 (expected) | `1d59b88f…` | `c04f9688bf156ec5a309c1b543de1db39df85f0a76ddc9adb5cff837658e7e5a` | the harness's own new `harness sha256` line; probe `f34292cf…` printed before and after the run |
 
 **Superseded, 2026-11-18, but not invalidated.** Every row in that table is a true record of harness
 `5de18524…` exercising probe `b995063b…`, and the G0 snapshot
@@ -252,8 +253,11 @@ A correction like that belongs in the artifact, not only in a chat message.
 Two things would remove the class of defect this section exists to work around; both are one-line changes
 to `probe-harness.py`, and both were out of scope in the lane that wrote it:
 
-1. **Print its own sha256 in the preamble**, next to the probe's. Then every log self-attests to the bytes
-   that produced it and no index has to promise what a replay can prove.
+1. **~~Print its own sha256 in the preamble~~ — DONE, 2026-11-19.** Harness `1d59b88f…` prints
+   `harness sha256` next to the probe's, and `probe-harness-selfhash-table-2026-11-19.log` is the
+   first log that self-attests: control GREEN (exit 0) plus all three mutants RED with their
+   expected codes (3 FORBIDDEN_CALL, 4 UNDOCUMENTED_CALL, 5 VERDICT_MISMATCH), 3/3 FALSIFIER PASS,
+   against probe `f34292cf…`.
 2. **Re-run the five replays after any harness edit**, the same way this section does: the mutation legs
    and the pin leg cannot drift silently (they fail loudly), but a *recorded log* can quietly stop
    describing the current harness, which is exactly what happened here once.
