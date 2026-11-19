@@ -1,14 +1,19 @@
 ; Skeer autoSTEM installer - Inno Setup 6
 ;
-;   ISCC.exe packaging\SkeerAutoSTEM.iss
+;   ISCC.exe /DAppVersion=x.y.z packaging\SkeerAutoSTEM.iss
+;   (x.y.z = <Version> in src\StemForge.App\StemForge.App.csproj - build.ps1 passes it there)
 ;
 ; Relative paths resolve against this script's own folder (packaging\), so ..\ reaches the
 ; repository root. Run .\build.ps1 first: this script packages the binaries it publishes and
 ; fails if they are missing.
 
 #define AppName "Skeer autoSTEM"
-; Keep in sync with <Version> in src\StemForge.App\StemForge.App.csproj.
-#define AppVersion "1.1.0"
+
+; The version has one source, the csproj above. Nothing here defaults it: a defaulted literal
+; is a second copy that drifts, which is exactly what this file used to carry.
+#ifndef AppVersion
+#error "AppVersion is not defined: build through build.ps1, or pass /DAppVersion=x.y.z taken from the csproj <Version>"
+#endif
 
 [Setup]
 ; AppId is this product's permanent identity: never change it once shipped, or a new build

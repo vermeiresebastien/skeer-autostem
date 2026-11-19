@@ -117,7 +117,16 @@ if (-not $SkipInstaller) {
 
     if ($iscc) {
         Write-Host 'Compiling the installer...' -ForegroundColor Cyan
-        $compile = & $iscc (Join-Path $repo 'packaging/SkeerAutoSTEM.iss') 2>&1
+        # One version source: <Version> in the app's csproj. The define travels to ISCC here, and
+        # the installer script refuses to default it, so a direct ISCC run must pass the same
+        # /DAppVersion - a second literal here is the drift this file used to carry.
+        $appProject = Join-Path $repo 'src/StemForge.App/StemForge.App.csproj'
+        [xml]$appXml = Get-Content $appProject
+        $version = @($appXml.Project.PropertyGroup | ForEach-Object { $_.Version }) |
+            Where-Object { $_ } | Select-Object -First 1
+        if (-not $version) { throw "no <Version> found in $appProject" }
+        Write-Host ("installer version {0} (from {1})" -f $version, $appProject) -ForegroundColor Cyan
+        $compile = & $iscc "/DAppVersion=$version" (Join-Path $repo 'packaging/SkeerAutoSTEM.iss') 2>&1
         if ($LASTEXITCODE -ne 0) { $compile | ForEach-Object { Write-Host $_ }; throw 'installer compile failed' }
     } else {
         Write-Warning 'Inno Setup (ISCC.exe) not found - building without an installer. Set INNO_SETUP_ISCC or pass -SkipInstaller.'
