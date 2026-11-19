@@ -50,13 +50,21 @@ bytes. That folder is left byte-identical as history: it records harness `a5e991
 self-attestation) exercising probe `f34292cf…`, and its legs are the same ten with the same
 expectations — every leg above matches what G3 recorded, now from a harness that names itself.
 
-## Single-witness status
+## Second-person verification
 
-**Pending.** Every leg in this table was run by the same pair of hands that made the one-line
-harness change, so the standing *"by a second pair of hands"* instruction (G3's, carried into G4
-by the brief) is not yet satisfied. The independent re-run and its verdict will be recorded in
-this section when it happens; this paragraph will then be rewritten in past tense. Until then,
-treat the table as single-witness.
+**Done, 2026-11-19.** An independent agent re-ran the table from the committed bytes and
+confirmed the reproduction. Method: `git archive HEAD tools/live-probe` extracted into an empty
+scratch directory (the worktree was never consulted, the repo untouched); run-table.sh was
+**not** executed — the agent invoked the legs directly to avoid its hardcoded `cd` back into the
+real repo. Results: scratch harness/probe hashed to `1d59b88f…` / `f34292cf…` (49,337 B /
+26,112 B, CR=0 each); legs 02–07 exit codes 0/0/3/4/5/3 with logs **byte-identical** to the
+committed ones (diff empty, including the preamble's self-attested `harness sha256` line);
+legs 08–11 want/got 2/2, 6/6, 6/6, 7/7 all MATCH with derived copies deleted and both final
+self-attestation lines True; leg 12 recounted at 42 ok / 0 missing; leg 13's clone-stability
+claim re-proved by the `git archive` extraction itself. Permitted differences actually observed:
+tempfile paths in the derived runs and the verifier's own CRLF capture of leg 12 (identical
+under `diff --strip-trailing-cr`, same manifest sha256). The standing *"by a second pair of
+hands"* instruction is **satisfied** for this table.
 
 ## Reproducing
 
