@@ -89,6 +89,14 @@ internal sealed class FakeSaveDialog : Form
 
     internal string? WrittenPath { get; private set; }
 
+    /// <summary>
+    /// The write exception, if ConfirmAndClose's write threw. Recorded rather than swallowed: a
+    /// red takeover poll can only say "no file appeared", and the next flake has to name its own
+    /// cause - the cold-start failure of 2026-11-19 was undiagnosable precisely because this was
+    /// a silent catch.
+    /// </summary>
+    internal string? WriteError { get; private set; }
+
     internal bool CancelPressed { get; private set; }
 
     internal bool EscapePressed { get; private set; }
@@ -107,10 +115,11 @@ internal sealed class FakeSaveDialog : Form
         try
         {
             File.WriteAllText(WrittenPath, "a fake .als written by the test dialog");
+            WriteError = null;
         }
-        catch
+        catch (Exception ex)
         {
-            // The assertion on the file is where a failure belongs, not here.
+            WriteError = ex.ToString();
         }
 
         Close();

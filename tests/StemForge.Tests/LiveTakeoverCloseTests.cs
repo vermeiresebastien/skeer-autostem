@@ -25,10 +25,14 @@ public sealed class LiveTakeoverCloseTests
             TimeSpan.FromMilliseconds(closeBudgetMs),
             maxPrompts);
 
-    /// <summary>Asserts the outcome and, when it is wrong, shows what the takeover said and logged.</summary>
-    private static void AssertOutcome(SessionClose expected, SessionCloseResult result, Harness harness) =>
+    /// <summary>Asserts the outcome and, when it is wrong, shows what the takeover said and logged.
+    /// <paramref name="extra"/> carries evidence the takeover cannot see - the fake dialog's
+    /// recorded write exception - so a refused save names its cause instead of just its absence.</summary>
+    private static void AssertOutcome(SessionClose expected, SessionCloseResult result, Harness harness,
+        string? extra = null) =>
         Assert.True(result.Outcome == expected,
-            $"expected {expected}, got {result.Outcome} (save={result.Save}): {result.Message}\n--- log ---\n{harness.LogText}");
+            $"expected {expected}, got {result.Outcome} (save={result.Save}): {result.Message}" +
+            (string.IsNullOrEmpty(extra) ? "" : $"\n{extra}") + $"\n--- log ---\n{harness.LogText}");
 
     /// <summary>One fake session plus the log it wrote and the actions it was asked for.</summary>
     private sealed class Harness : IDisposable
@@ -96,13 +100,15 @@ public sealed class LiveTakeoverCloseTests
 
         var result = await harness.CloseAsync(Timing());
 
-        AssertOutcome(SessionClose.Closed, result, harness);
+        AssertOutcome(SessionClose.Closed, result, harness,
+            dialog?.WriteError is null ? null : $"fake dialog write error:\n{dialog.WriteError}");
         Assert.Equal(SaveState.Saved, result.Save);
         Assert.Equal("closed", result.Message);
 
         Assert.NotNull(dialog);
         Assert.NotNull(dialog!.WrittenPath);
-        Assert.True(File.Exists(dialog.WrittenPath), $"no file at \"{dialog.WrittenPath}\"");
+        Assert.True(File.Exists(dialog.WrittenPath),
+            $"no file at \"{dialog.WrittenPath}\" (write error: {dialog.WriteError ?? "<none recorded>"} )");
         Assert.StartsWith(AppPaths.RecoveryRoot, dialog.WrittenPath);
         Assert.False(dialog.CancelPressed, "a save dialog must never be cancelled");
         Assert.False(dialog.EscapePressed);
@@ -206,13 +212,15 @@ public sealed class LiveTakeoverCloseTests
         // save is not a prompt.
         var result = await harness.CloseAsync(Timing(closeBudgetMs: 3000, maxPrompts: 0));
 
-        AssertOutcome(SessionClose.Closed, result, harness);
+        AssertOutcome(SessionClose.Closed, result, harness,
+            dialog?.WriteError is null ? null : $"fake dialog write error:\n{dialog.WriteError}");
         Assert.Equal(SaveState.Saved, result.Save);
 
         Assert.NotNull(dialog);
         Assert.NotNull(dialog!.WrittenPath);
         Assert.StartsWith(AppPaths.RecoveryRoot, dialog.WrittenPath);
-        Assert.True(File.Exists(dialog.WrittenPath), $"no file at \"{dialog.WrittenPath}\"");
+        Assert.True(File.Exists(dialog.WrittenPath),
+            $"no file at \"{dialog.WrittenPath}\" (write error: {dialog.WriteError ?? "<none recorded>"} )");
         Assert.False(dialog.CancelPressed);
 
         Assert.Contains("reason=ok", harness.LogText);
