@@ -209,7 +209,9 @@ currently built**, and nothing in the tree records which commit produced it.
   user chose another handler, we do not win it and must not claim we do.
 - **Pricing/licensing consequence:** shipping **no licence for our own code** while shipping a
   139 MB unsigned binary is the worst combination — nothing tells the user what they received, from
-  whom, or on what terms.
+  whom, or on what terms. **(Cleared 2026-11-19 for the terms half:** the root `LICENSE` (MIT) now
+  ships beside the binaries and `LicenseFile=` shows it in setup, §2a. **Unsigned stays true** —
+  §2b lists what that forbids claiming.)
 
 **No certificate is a decision, not a defect** — but section 5 lists the marketing sentences it makes
 unavailable.
@@ -329,7 +331,7 @@ the 2026-11-16 working tree.
 | 7 | `docs/SEPARATION-ENGINES.md:237-241` | "its *weights* have **no stated licence**" … "ship nothing but the Demucs family — not because it is licensed, but because it is the only …" | Same supersession; and the conclusion should now cite the shipping option in §3, not "inference". |
 | 8 | `docs/SEPARATION-ENGINES.md:478` | "BS-Roformer, `audio-separator`/UVR models, PyMDX, VIP centres — no licence, or CC BY-NC on the community bundles — **out**" | Correct conclusion; strengthen it with the verified evidence in §4 (the MIT-tagged HF re-uploads and the provenance-free card) so nobody re-opens it from a HF tag. |
 | 9 | `docs/SEPARATION-ENGINES.md:477` | "MUSDB18 … Zenodo-hosted, **access by request**, 'since the tracks can only be used for academic purposes'" | The Zenodo licence fields I read are "Other (Non-Commercial)" / "provided for educational purposes only". Quote those; "access by request" was **not verified in this pass** and should be confirmed or dropped. |
-| 10 | `docs/SEPARATION-ENGINES.md:497-503` | "**today's installer ships no licence file at all.**" | Half-stale: `ThirdPartyNotices.dotnet.txt` and `LICENSE.dotnet-runtime.txt` now ship (§2a). Still true for **our own** licence, which remains absent — rewrite to say precisely that. |
+| 10 | `docs/SEPARATION-ENGINES.md:497-503` | "**today's installer ships no licence file at all.**" | Half-stale: `ThirdPartyNotices.dotnet.txt` and `LICENSE.dotnet-runtime.txt` now ship (§2a). Still true for **our own** licence, which remains absent — rewrite to say precisely that. **Done 2026-11-19:** the paragraph is dated to 2026-11-16 and a "Cleared 2026-11-19" note records the root `LICENSE` + `LicenseFile=`. |
 | 11 | `docs/SEPARATION-ENGINES.md:55` | "code is MIT, the weights' licence is the §9 problem" | The §9 problem is now an answered question, not an open one (§3). |
 
 **The same false floor also lives in code, not just docs** (outside the brief's file list, so listed
@@ -432,6 +434,9 @@ are quoted, the risk readings are ours.
    §4 stays **blocked** until somebody supplies a repository or model-card URL.
 4. **The product has no licence text of its own**, so I cannot report what terms we ship under — there
    is nothing to read. Only the owner can supply the terms; nobody on the team can invent them.
+   **(Closed 2026-11-19:** the owner's instruction was to publish under a public licence; the terms
+   shipped are MIT (§2a) — the root `LICENSE`, displayed by setup and installed beside the
+   executables.)
 5. **Whether (a) or (b) is acceptable at all is an owner decision informed by counsel**, not a research
    finding: the upstream restriction on the weights is verified, but what to do about it is not a
    question this lane can settle.
