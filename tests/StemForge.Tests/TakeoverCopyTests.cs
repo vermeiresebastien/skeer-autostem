@@ -21,9 +21,9 @@ public sealed class TakeoverCopyTests
 {
     /// <summary>
     /// Promises that the open set's work does not survive. Deliberately phrased as verb-plus-object
-    /// rather than as the bare word "dropped": the correct sentence says a set that cannot be saved
-    /// "is not thrown away either", and a check that banned that word outright would have to ban the
-    /// fix.
+    /// rather than as the bare word "dropped": the sentence a user reads says the set "is left
+    /// open" when it cannot be saved, and a check that banned that word outright would have to ban
+    /// the fix.
     /// </summary>
     private static readonly string[] ForbiddenPromisePhrases =
     [
@@ -66,7 +66,7 @@ public sealed class TakeoverCopyTests
 
         // Present: the refusal, and the open set being left where it is. This half is what stops
         // the gate going green because somebody deleted the sentence instead of rewriting it.
-        Assert.Contains("it is left open", confirmation);
+        Assert.Contains("cannot be saved is left open", confirmation);
         Assert.Contains("the run stops before anything is closed", confirmation);
         Assert.Contains("the log names the session it stopped on", confirmation);
         Assert.Contains("nothing of yours is replaced", confirmation);
@@ -105,5 +105,39 @@ public sealed class TakeoverCopyTests
 
         Assert.StartsWith("user confirmed takeover of 2 open Live session(s)",
             LiveRunCopy.TakeoverConfirmed(2));
+    }
+
+    /// <summary>
+    /// The confirmation may promise what the run itself decides - the named cases: a saved set is
+    /// written where it lives, a never-saved set goes to the recovery folder, a set that cannot be
+    /// saved is left open and the run stops. It must not promise an outcome that depends on
+    /// answering whatever prompt Live raises while closing, because the close loop leaves a
+    /// prompt unanswered rather than discard on a stale verdict, and a promise the run does not
+    /// own in every case is the product telling the user it may eat work it has promised not to
+    /// eat. Both directions asserted, as above - and "not thrown away" is banned outright,
+    /// including inside the sentence that used to carry it.
+    /// </summary>
+    [Fact]
+    public void TakeoverConfirmationDoesNotPromiseAnAutomaticPromptAnswer()
+    {
+        var open = new List<RunningLiveSession>
+        {
+            new(4321, "Untitled.als", LiveSessionKind.Foreign),
+        };
+
+        var confirmation = LiveRunCopy.TakeoverConfirmation(open, @"C:\Skeer\recovered");
+        var conditions = LiveRunCopy.RunConditions("Ableton Live 12.3 Suite");
+
+        Assert.DoesNotContain("not thrown away", confirmation);
+        Assert.DoesNotContain("never thrown away", confirmation);
+        Assert.DoesNotContain("not discarded", confirmation);
+
+        // Present: the conditional sentences that own their case, in both carriers. The
+        // conditions bullet keeps "never discards" because there it is followed by the case
+        // split that makes it true.
+        Assert.Contains("cannot be saved is left open", confirmation);
+        Assert.Contains("the run stops before anything is closed", confirmation);
+        Assert.Contains("never discards an open set", conditions);
+        Assert.Contains("stops before closing anything", conditions);
     }
 }

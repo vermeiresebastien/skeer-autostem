@@ -37,9 +37,9 @@ public static class LiveRunCopy
             "A set that was already saved is written where it lives. A set that was never saved " +
             $"goes to\n\n  {folder}\n\n" +
             "under a name built from its title and the clock, so nothing of yours is replaced. A " +
-            "set that cannot be saved is not thrown away either: it is left open, the run stops " +
-            "before anything is closed, and the log names the session it stopped on. Save it in " +
-            "Live, then start the batch again.\n\n" +
+            "set that cannot be saved is left open: the run stops before anything is closed, and " +
+            "the log names the session it stopped on. Save it in Live, then start the batch " +
+            "again.\n\n" +
             "Close these sessions and start the batch?";
     }
 

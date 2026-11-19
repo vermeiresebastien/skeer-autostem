@@ -311,4 +311,84 @@ public sealed class LiveTakeoverCloseTests
         Assert.True(WindowControl.IsVisible(harness.Session.MainHandle), "the session must be left open");
         Assert.Equal(before, InputSimulator.InjectionAttempts);
     }
+
+    /// <summary>
+    /// The prompt a clean session puts up on the way out is answered with the discard label, and
+    /// the log has to name the label that took the answer. "An answer happened" is not auditable:
+    /// against <see cref="LiveSessionTakeover.DiscardLabels"/> - and against the promise the
+    /// confirmation copy makes - the only useful log line is the one that says which button took it.
+    /// </summary>
+    [Fact]
+    public async Task TheLogNamesTheLabelThatAnsweredAPromptWhileClosing()
+    {
+        var before = InputSimulator.InjectionAttempts;
+        using var harness = new Harness("TakeoverFixture Prompt - Ableton Live 12 Suite");
+
+        FakeMessageBox? prompt = null;
+        harness.Actions.OnClose = () =>
+        {
+            prompt = harness.Session.RaiseMessageBox(actsOnDiscardKey: true);
+            prompt.FormClosed += (_, _) =>
+            {
+                harness.Session.CloseMain();
+                harness.Actions.Alive = false;
+            };
+        };
+
+        var result = await harness.CloseAsync(Timing(closeBudgetMs: 3000));
+
+        AssertOutcome(SessionClose.Closed, result, harness);
+        Assert.Equal(SaveState.NoUnsavedChanges, result.Save);
+        Assert.Equal(1, harness.Actions.Closes);
+        Assert.Equal(0, harness.Actions.Terminations);
+
+        Assert.NotNull(prompt);
+        Assert.True(prompt!.DiscardKeyReceived, "the posted accelerator never reached the prompt");
+        Assert.Contains("answered with \"Don't Save\"", harness.LogText);
+
+        // The answer travels as a posted key into the prompt's own queue, so the desktop is
+        // never touched on this path either.
+        Assert.Equal(before, InputSimulator.InjectionAttempts);
+    }
+
+    /// <summary>
+    /// A set that goes dirty after the close started is work made after the run began, and the
+    /// prompt it raises must not be answered with a discard. The save state the loop was entered
+    /// with was proven before that work existed; answering on it would be discarding on a stale
+    /// judgment, and the kill the budget eventually allows would then be a kill of a session
+    /// holding unsaved work. The prompt is left up, unanswered, and the run stops - the same
+    /// refusal any save that cannot be proven gets.
+    /// </summary>
+    [Fact]
+    public async Task ASetThatWentDirtyAfterEntryIsNotAnsweredWithADiscard()
+    {
+        var before = InputSimulator.InjectionAttempts;
+        using var harness = new Harness("TakeoverFixture Clean - Ableton Live 12 Suite");
+
+        FakeMessageBox? prompt = null;
+        harness.Actions.OnClose = () =>
+        {
+            // Exactly between the takeover's clean verdict and the prompt: the title goes dirty
+            // here, so only a marker re-read at prompt time can see it.
+            harness.Session.SetTitle("TakeoverFixture Went Dirty* - Ableton Live 12 Suite");
+            prompt = harness.Session.RaiseMessageBox(actsOnDiscardKey: false);
+        };
+
+        var result = await harness.CloseAsync(Timing(closeBudgetMs: 700, graceMs: 400));
+
+        AssertOutcome(SessionClose.Refused, result, harness);
+        Assert.Equal(SaveState.Failed, result.Save);
+        Assert.Contains("went unsaved", result.Message);
+        Assert.Contains("nothing was closed", result.Message);
+
+        Assert.Equal(0, harness.Actions.Terminations);
+        Assert.True(WindowControl.IsVisible(harness.Session.MainHandle), "the session must be left open");
+
+        // No answer of any kind reaches the prompt: the discard is forbidden by the re-read
+        // marker, and the escape is not posted either, because the prompt is left for the user.
+        Assert.NotNull(prompt);
+        Assert.False(prompt!.DiscardKeyReceived);
+        Assert.False(prompt.EscapeReceived);
+        Assert.Equal(before, InputSimulator.InjectionAttempts);
+    }
 }

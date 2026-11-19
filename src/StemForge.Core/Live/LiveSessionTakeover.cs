@@ -704,6 +704,14 @@ public static class LiveSessionTakeover
     /// neither answer took, it posts Escape instead - which cancels the prompt and leaves the
     /// dialog for the next poll rather than pressing a button it is not certain of.
     ///
+    /// A prompt is answered only while the title still says the set is clean. The verdict that
+    /// licenses the discard was proven before the close began, so when a prompt is up the marker
+    /// is read again first: a set that went dirty after entry is work made after the run started,
+    /// and the answer would throw it away on a judgment made before it existed. That prompt is
+    /// left up unanswered and the close is refused, the same outcome any save that cannot be
+    /// proven gets. What an answer was is logged - the label that took it, "Escape", or nothing -
+    /// because "an answer happened" is not auditable against the label list.
+    ///
     /// What it deliberately never does is press Save, and the reason is not that the answer would
     /// lose work: it cannot, because this loop is only entered after
     /// <see cref="UnsavedWorkPolicy.MayClose"/> has accepted the save state, so a session reaching
@@ -769,12 +777,27 @@ public static class LiveSessionTakeover
                 }
                 else if (dialog is not null)
                 {
+                    // The verdict that licenses the discard below was proven before the close
+                    // began, so when a prompt is up the marker is read again first: a set that
+                    // went dirty after entry is work made after the run started, and answering
+                    // the prompt with a discard would throw it away on a judgment made before it
+                    // existed. The prompt is left up, unanswered, and the close is refused - the
+                    // same outcome any save that cannot be proven gets.
+                    if (HasUnsavedChanges(WindowControl.GetTitle(main)))
+                    {
+                        return (false,
+                            "the set went unsaved while the close was running, so the prompt was " +
+                            "not answered with a discard",
+                            SaveState.Failed);
+                    }
+
                     if (answered < timing.MaxPrompts)
                     {
                         answered++;
-                        log.Warn($"Live (pid {proc.Id}) put up '{dialog.Title}' while closing; answering it " +
+                        var answer = Press(dialog, DiscardLabels, fallBackToEscape: true);
+                        log.Warn($"Live (pid {proc.Id}) put up '{dialog.Title}' while closing; " +
+                                 $"answered with {(answer is null ? "nothing" : $"\"{answer}\"")} " +
                                  $"({answered} of {timing.MaxPrompts})", job);
-                        Press(dialog, DiscardLabels, fallBackToEscape: true);
                     }
                     else if (!spentReported)
                     {
@@ -855,8 +878,12 @@ public static class LiveSessionTakeover
     /// click on it, then Escape. In that order because the first costs the user nothing - a posted
     /// key goes into this dialog's queue, needs neither the foreground nor the screen, and cannot
     /// land in his window the way a click on a modal that never came forward can.
+    ///
+    /// Returns what the answer was: the label of the button that took it, "Escape" when only the
+    /// fallback fired, or null when nothing took. The caller logs it, because "an answer happened"
+    /// is not auditable against the label list.
     /// </summary>
-    private static void Press(TopLevelWindow dialog, string[] labels, bool fallBackToEscape)
+    private static string? Press(TopLevelWindow dialog, string[] labels, bool fallBackToEscape)
     {
         var root = LiveUi.FromHandle(dialog.Handle);
         IReadOnlyList<DialogButton> buttons =
@@ -866,7 +893,7 @@ public static class LiveSessionTakeover
         {
             if (DialogKey.ForLabel(target.Name, buttons.Select(b => b.Name)) is { } key
                 && InputSimulator.PostKey(dialog.Handle, key)
-                && WaitForDialogClosed(dialog, TimeSpan.FromSeconds(2))) return;
+                && WaitForDialogClosed(dialog, TimeSpan.FromSeconds(2))) return target.Name;
 
             // A raised real click, not Invoke: Live's own message boxes answer a click and ignore a
             // programmatic Invoke without reporting anything wrong. That silent "success" is what
@@ -876,19 +903,21 @@ public static class LiveSessionTakeover
             // two lines is not answered in the user's window.
             if (WindowControl.TryActivateAndReport(dialog.Handle, attempts: 2).TargetIsForeground
                 && LiveUi.TryClick(target.Element))
-                return;
+                return target.Name;
         }
 
-        if (!fallBackToEscape) return;
+        if (!fallBackToEscape) return null;
 
         try
         {
             WindowControl.Activate(dialog.Handle);
             GuardedInput.PressKey(dialog.Handle, InputSimulator.VkEscape, "escaped a Live prompt");
+            return "Escape";
         }
         catch
         {
             // Nothing else to do; the caller's deadline and the policy cover it.
+            return null;
         }
     }
 

@@ -146,6 +146,67 @@ internal sealed class FakeSaveDialog : Form
     }
 }
 
+/// <summary>
+/// A message box shaped like Live's save question: labelled buttons and no edit field - the
+/// absence of an edit is exactly the signal
+/// <see cref="LiveSessionTakeover.IsFileSaveDialog"/> uses to tell a save dialog from a prompt.
+/// It records which key actually reached it, so a test can tell "the discard answer was posted"
+/// from "the prompt was never answered", and <paramref name="actsOnDiscardKey"/> decides whether
+/// the posted accelerator is honoured: a prompt that acts on it models a question the run
+/// answered; one that does not models a question nothing could answer, which is what a budget
+/// exhaustion looks like from the dialog's side.
+/// </summary>
+internal sealed class FakeMessageBox : Form
+{
+    internal const int VkD = 0x44;
+
+    private readonly bool _actsOnDiscardKey;
+
+    internal FakeMessageBox(bool actsOnDiscardKey)
+    {
+        _actsOnDiscardKey = actsOnDiscardKey;
+
+        Text = "Save set?";
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        StartPosition = FormStartPosition.Manual;
+        Location = new System.Drawing.Point(-32000, -32000);
+        ClientSize = new System.Drawing.Size(300, 110);
+        ShowInTaskbar = false;
+
+        var discard = new Button { Text = "Don't Save", Location = new System.Drawing.Point(30, 62), Width = 110 };
+        var cancel = new Button { Text = "Cancel", Location = new System.Drawing.Point(160, 62), Width = 110 };
+        Controls.Add(discard);
+        Controls.Add(cancel);
+    }
+
+    internal bool DiscardKeyReceived { get; private set; }
+
+    internal bool EscapeReceived { get; private set; }
+
+    protected override bool ShowWithoutActivation => true;
+
+    protected override void WndProc(ref Message message)
+    {
+        if (message.Msg == FakeWindows.WmKeyDown)
+        {
+            var key = message.WParam.ToInt32();
+
+            if (key == FakeWindows.VkEscape) EscapeReceived = true;
+
+            // The accelerator the takeover posts for "Don't Save" is its first letter, per
+            // DialogKey.ForLabel. Honoured or not, it is recorded: a test that asserts the
+            // prompt went unanswered has to be able to see the key that arrived.
+            if (key == VkD && _actsOnDiscardKey)
+            {
+                DiscardKeyReceived = true;
+                Close();
+            }
+        }
+
+        base.WndProc(ref message);
+    }
+}
+
 /// <summary>Runs one window on its own STA thread with a message pump, for as long as it is up.</summary>
 internal sealed class FakeFormHost : IDisposable
 {
@@ -228,7 +289,7 @@ internal sealed class FakeFormHost : IDisposable
 internal sealed class FakeLiveSession : IDisposable
 {
     private readonly FakeFormHost _host;
-    private readonly List<FakeSaveDialog> _dialogs = new();
+    private readonly List<Form> _dialogs = new();
 
     internal FakeLiveSession(string title)
     {
@@ -253,6 +314,25 @@ internal sealed class FakeLiveSession : IDisposable
         {
             if (blockOwner) FakeWindows.EnableWindow(main.Handle, false);
             dialog = create();
+            _dialogs.Add(dialog);
+            dialog.Show();
+        });
+
+        return dialog ?? throw new InvalidOperationException("the dialog was never created");
+    }
+
+    /// <summary>
+    /// The message-box twin of <see cref="RaiseDialog"/>: same modal behaviour, but the dialog
+    /// has no edit field, so the takeover reads it as a prompt and not as a save dialog.
+    /// </summary>
+    internal FakeMessageBox RaiseMessageBox(bool actsOnDiscardKey, bool blockOwner = true)
+    {
+        FakeMessageBox? dialog = null;
+
+        _host.OnUi(main =>
+        {
+            if (blockOwner) FakeWindows.EnableWindow(main.Handle, false);
+            dialog = new FakeMessageBox(actsOnDiscardKey);
             _dialogs.Add(dialog);
             dialog.Show();
         });
