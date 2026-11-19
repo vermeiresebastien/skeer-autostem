@@ -21,6 +21,8 @@
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 AppName={#AppName}
 AppVersion={#AppVersion}
+; Our own code is MIT-licensed (root LICENSE). Setup shows the text before the install begins.
+LicenseFile=..\LICENSE
 AppVerName={#AppName} {#AppVersion}
 AppPublisher=Skeer
 AppPublisherURL=https://github.com/vermeiresebastien/skeer-autostem
@@ -59,10 +61,13 @@ Source: "..\artifacts\autostem-cli\autostem.exe"; DestDir: "{app}"; Flags: ignor
 ; share {app}, and they are the same files whoever installs them.
 Source: "..\artifacts\SkeerAutoSTEM\ThirdPartyNotices.dotnet.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\artifacts\SkeerAutoSTEM\LICENSE.dotnet-runtime.txt"; DestDir: "{app}"; Flags: ignoreversion
+; The product's own MIT licence travels beside the binaries it covers.
+Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"
 Name: "{group}\Third-party notices (.NET runtime)"; Filename: "{app}\ThirdPartyNotices.dotnet.txt"; WorkingDir: "{app}"
+Name: "{group}\Licence (MIT)"; Filename: "{app}\LICENSE"; WorkingDir: "{app}"
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\SkeerAutoSTEM.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 

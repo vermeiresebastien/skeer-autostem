@@ -494,13 +494,17 @@ where the hash is known and the permission is not, and that difference is exactl
 maintainer must not have to rediscover from this document.
 
 Checked while writing this, because it is a gap we already have rather than one Phase 3 would
-create: **today's installer ships no licence file at all.** `packaging\SkeerAutoSTEM.iss` copies
+create: **the installer as of 2026-11-16 shipped no licence file at all.** `packaging\SkeerAutoSTEM.iss` copies
 exactly two artifacts — the app and the headless CLI — and `artifacts\SkeerAutoSTEM\` contains
 nothing but those two `.exe`s and their `.pdb`s, so the self-contained .NET 10 runtime that rides
 inside them reaches the customer's machine with no notices attached. MIT asked that of us before
 any model was in the picture, and it is the cheapest item in this document: take
 `ThirdPartyNotices.txt` from the .NET release the build pins, add it to `[Files]` next to the
 exe, and point the installer's `LicenseFile=` at a licence for our own code.
+
+**Cleared 2026-11-19:** the root `LICENSE` (MIT, Copyright (c) 2026 Skeer) is tracked,
+`packaging/SkeerAutoSTEM.iss` sets `LicenseFile=..\LICENSE` so setup shows the grant, `LICENSE` travels in `[Files]` beside the executables, and a Start-menu shortcut opens it.
+The README licence section now states MIT for **our code only** — weights remain non-MIT and ship in no part of the product.
 
 And the one thing this audit cannot close: the exposure that matters is **training data, not
 weights**. MUSDB18's terms are academic-only and its artists licensed recordings for research, not

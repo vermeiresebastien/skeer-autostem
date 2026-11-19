@@ -347,8 +347,8 @@ dotnet test tests/StemForge.Tests/StemForge.Tests.csproj
 - `CloseApplications=yes` and `ChangesAssociations=yes` — the latter is required whenever the script
   touches file classes, or neither install nor uninstall tells the shell to reload them.
 - `AppId` is permanent: changing it installs side by side instead of replacing.
-- Version lives in `<Version>` in `StemForge.App.csproj`; the script repeats it as `AppVersion` with
-  a comment to keep them in sync. That duplication is known and is on the list to remove.
+- **Version is single-sourced.** `<Version>` in `StemForge.App.csproj` is the one source: `build.ps1`
+  reads it and passes `/DAppVersion` to ISCC, and the script refuses to default a second literal.
 - **No plugin is installed, anywhere.** Nothing in this repository builds or ships a VST3/AU/AAX, so
   there is no DAW folder to write to and no duplicate browser entry to create.
 
@@ -398,15 +398,15 @@ given machine.
 
 ## Licence and terms
 
-**This product does not yet carry a licence file.** It is not MIT, not "open source", and not
-"free for commercial use" — that has not been decided, so nothing here states it. Read the source as
-yours to run on your own machines; do not take a licence sentence from this README, because there
-isn't one.
+**This product is licensed under the MIT licence** — see `LICENSE` at the repository root. The
+installer shows it during setup and keeps a copy beside both executables. The grant covers
+**our own code only**; model weights are not MIT (docs/LICENSING-REQUIREMENTS.md §3) and no
+weights ship in this product.
 
 The .NET runtime that the self-contained builds redistribute does travel with its terms:
 `ThirdPartyNotices.dotnet.txt` and `LICENSE.dotnet-runtime.txt`, next to both executables in the
 install folder. Ableton Live and its separator are Ableton's, licensed to you separately, and are
-never bundled, copied or repackaged here.
+never bundled, copied or republished here.
 
 ## Status
 

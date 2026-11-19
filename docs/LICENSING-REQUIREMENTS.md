@@ -141,10 +141,11 @@ first.
 
 **Two real gaps, both verified locally.**
 
-1. **The product has no licence of its own.** No `LICENSE`, `LICENSE.md` or `EULA` is tracked
-   (`git ls-files` shows none), and `packaging/SkeerAutoSTEM.iss` sets **no `LicenseFile=`**. Nobody
-   has ever told the user what they may do with our code. `docs/SEPARATION-ENGINES.md:497-503`
-   already flags this.
+1. **The product has a licence of its own.** A root `LICENSE` (MIT, Copyright (c) 2026 Skeer) is
+   tracked, `packaging/SkeerAutoSTEM.iss` sets `LicenseFile=..\LICENSE` so setup displays it, and
+   `{app}\LICENSE` travels with both executables. `docs/SEPARATION-ENGINES.md:497-503` flagged the
+   old absence; the MIT grant covers our code, not the .NET runtime notices and not any engine
+   weights, which do not ship.
 2. **Notices are reachable but thin.** The installer puts both texts in `{app}` and adds one Start
    menu shortcut, `{group}\Third-party notices (.NET runtime)`
    (`packaging/SkeerAutoSTEM.iss:55-56, 60`). An "About" surface or an EULA step would be the normal
@@ -351,7 +352,9 @@ this document's claim, and nothing in §1 changes it either way.
 - "Tested on Windows 11" until a Windows 11 run is recorded.
 - "Requires an additional download" — or "no additional download required" — for Live's separator
   (§1 blocked sub-question).
-- "Licensed under MIT" / "open source" for **our own** product: no licence file exists (§2a).
+- "Licensed under MIT" / "open source" for **our own** product: **cleared** — the root `LICENSE` (MIT)
+  now exists (§2a), so the sentence is true for our code. It stays banned for the pretrained weights
+  and any engine pack (§3: not MIT, scientific purposes only).
 - "Demucs-quality local separation without Ableton" — and any quality comparison to htdemucs for any
   model, since §4 left no licensed candidate to compare.
 - "Commercial use permitted" / "free for commercial use" for any weights, engine pack, or model
