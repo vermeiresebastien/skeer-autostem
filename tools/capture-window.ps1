@@ -15,6 +15,7 @@ param(
     [Parameter(Mandatory = $true)][string]$Out,
     [string]$InvokeButton,
     [string]$WindowTitle = 'Skeer autoSTEM',
+    [string]$InvokeWindow,
     [string]$Companion = 'artifacts/autostem-cli/autostem.exe'
 )
 
@@ -38,19 +39,31 @@ public class SkeerCapture
 
     public static IntPtr Find(string title)
     {
-        IntPtr found = IntPtr.Zero;
+        // Prefer an exact title. "Skeer autoSTEM" is a prefix of "Skeer autoSTEM - run finished", so a
+        // substring search picks the dialog that popped over the main window instead of the window asked for.
+        IntPtr exact = IntPtr.Zero;
+        IntPtr contains = IntPtr.Zero;
         EnumWindows((h, l) =>
         {
             if (!IsWindowVisible(h)) return true;
             var sb = new System.Text.StringBuilder(512);
             GetWindowTextW(h, sb, 512);
-            if (sb.ToString().Contains(title)) { found = h; return false; }
+            var text = sb.ToString();
+            if (string.Equals(text, title, StringComparison.OrdinalIgnoreCase)) { exact = h; return false; }
+            if (contains == IntPtr.Zero && text.Contains(title)) contains = h;
             return true;
         }, IntPtr.Zero);
-        return found;
+        return exact != IntPtr.Zero ? exact : contains;
     }
 
-    public static void Grab(IntPtr h, string path)
+    public static string Title(IntPtr h)
+    {
+        var sb = new System.Text.StringBuilder(512);
+        GetWindowTextW(h, sb, 512);
+        return sb.ToString();
+    }
+
+    public static string Grab(IntPtr h, string path)
     {
         RECT r;
         GetWindowRect(h, out r);
@@ -64,12 +77,20 @@ public class SkeerCapture
             }
             bmp.Save(path, System.Drawing.Imaging.ImageFormat.Png);
         }
+        return string.Format("'{0}' {1}x{2}", Title(h), r.Rt - r.L, r.B - r.T);
     }
 }
 "@ -ReferencedAssemblies System.Drawing
 
 if ($InvokeButton) {
-    & $Companion uia-invoke --button $InvokeButton --window $WindowTitle | Out-Null
+    # The button usually lives in the window we press from, which is not necessarily the window we
+    # capture: pressing "Diagnostics" opens a second window, and -InvokeWindow names the first one.
+    $pressWindow = if ($InvokeWindow) { $InvokeWindow } else { $WindowTitle }
+    $pressed = & $Companion uia-invoke --button $InvokeButton --window $pressWindow
+    if ($LASTEXITCODE -ne 0) {
+        throw "uia-invoke '$InvokeButton' in '$pressWindow' exit=$LASTEXITCODE : $($pressed -join ' ')"
+    }
+    Write-Host $pressed
     Start-Sleep -Seconds 2
 }
 
@@ -79,5 +100,5 @@ if ($handle -eq [IntPtr]::Zero) { throw "No visible window matching '$WindowTitl
 $dir = Split-Path -Parent $Out
 if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
 
-[SkeerCapture]::Grab($handle, (Join-Path (Get-Location) $Out))
-Write-Host "saved $Out"
+$what = [SkeerCapture]::Grab($handle, (Join-Path (Get-Location) $Out))
+Write-Host "saved $Out  captured=$what"
