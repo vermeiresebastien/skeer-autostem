@@ -257,7 +257,7 @@ internal static class Program
         if (folder is null || !Directory.Exists(folder)) { Console.Error.WriteLine("error: result folder not found"); return 1; }
 
         var manifest = StemForge.Core.Publish.ManifestStore.Read(folder);
-        if (manifest is null) { Console.Error.WriteLine("error: no stemforge.manifest.json in that folder"); return 1; }
+        if (manifest is null) { Console.Error.WriteLine($"error: no {StemForge.Core.Publish.JobManifest.FileName} in that folder"); return 1; }
 
         Console.WriteLine($"job        : {manifest.JobId}");
         Console.WriteLine($"profile    : {manifest.ProfileKey}");

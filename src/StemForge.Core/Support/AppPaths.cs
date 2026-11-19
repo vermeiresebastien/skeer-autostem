@@ -38,8 +38,6 @@ public static class AppPaths
     /// </summary>
     public static string RecoveryRoot => Path.Combine(Root, "recovered");
 
-    public static string LockFile => Path.Combine(Root, "runner.lock");
-
     /// <summary>Which Live process the last launch started, so orphans stay attributable.</summary>
     public static string LiveLaunchRecordFile => Path.Combine(Root, "live-launched.json");
 

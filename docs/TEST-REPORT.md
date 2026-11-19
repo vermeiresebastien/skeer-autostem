@@ -2,7 +2,10 @@
 
 Date of testing: 2026-11-04, re-run against real Live on 2026-11-14 (runs `run-20261114-*`) and
 again on 2026-11-15 (runs `run-20261115-*`, which is where the end-to-end completion was reached).
-Machine: Windows 11-era desktop (AMD Ryzen 9 3900X, 64 GB RAM, RTX 2080 Ti), interactive desktop session.
+Machine: Windows 10 Home 22H2 (build 19045) desktop (AMD Ryzen 9 3900X, 64 GB RAM, RTX 2080 Ti),
+interactive desktop session. This report records no Windows 11 run: the OS line used to read
+"Windows 11-era desktop", which was a description of the hardware generation rather than a
+measurement, and `docs/LICENSING-REQUIREMENTS.md` §7 settled it against the registry and CIM.
 
 > The 2026-11-14 re-runs overturned two claims this report made about clip selection and the
 > menu path. They are corrected below, in place, with what was actually measured instead.
