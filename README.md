@@ -327,6 +327,8 @@ dotnet test tests/StemForge.Tests/StemForge.Tests.csproj
 ./build.ps1
 # -> launch/SkeerAutoSTEM.exe            (self-contained, no .NET install required)
 # -> launch/autostem.exe                 (headless companion)
+# -> launch/LICENSE
+#      (the product's own MIT grant travels beside its binaries)
 # -> launch/ThirdPartyNotices.dotnet.txt, LICENSE.dotnet-runtime.txt
 #      (a self-contained build redistributes the .NET runtime, so Microsoft's
 #       notices have to travel with it)

@@ -140,6 +140,7 @@ New-Item -ItemType Directory -Path $launch -Force | Out-Null
 Copy-Item (Join-Path $appOut 'SkeerAutoSTEM.exe') $launch -Force
 Copy-Item (Join-Path $cliOut 'autostem.exe') $launch -Force
 foreach ($notice in $notices) { Copy-Item (Join-Path $appOut $notice.Name) $launch -Force }
+Copy-Item (Join-Path $repo 'LICENSE') $launch -Force
 Get-ChildItem $launch -Filter 'Skeer_autoSTEM_Setup_*.exe' | Remove-Item -Force
 
 $setup = Get-ChildItem $installers -Filter 'Skeer_autoSTEM_Setup_*.exe' -ErrorAction SilentlyContinue |
